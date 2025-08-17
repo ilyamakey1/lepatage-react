@@ -13,6 +13,7 @@ export const AdminPage: React.FC = () => {
   const [productToEdit, setProductToEdit] = useState<any>(null);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProductImages, setEditingProductImages] = useState<string[]>([]);
+  const [newProductImages, setNewProductImages] = useState<string[]>([]);
   
   const { state: authState } = useAuth();
 
@@ -54,16 +55,17 @@ export const AdminPage: React.FC = () => {
     },
   });
 
-  const deleteProductMutation = trpc.products.delete.useMutation({
-    onSuccess: () => {
-      refetchProducts();
-    },
-  });
-
   const createProductMutation = trpc.products.create.useMutation({
     onSuccess: () => {
       refetchProducts();
       setShowAddProduct(false);
+      setNewProductImages([]);
+    },
+  });
+
+  const deleteProductMutation = trpc.products.delete.useMutation({
+    onSuccess: () => {
+      refetchProducts();
     },
   });
 
@@ -806,6 +808,194 @@ export const AdminPage: React.FC = () => {
                           className="px-4 py-2 bg-primary-950 text-white hover:bg-primary-700 transition-colors disabled:opacity-50"
                         >
                           {updateProductMutation.isLoading ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Add Product Modal */}
+            {showAddProduct && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Добавить новый товар</h3>
+                    
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const colors = formData.get('colors') as string;
+                      const sizes = formData.get('sizes') as string;
+                      
+                      createProductMutation.mutate({
+                        name: formData.get('name') as string,
+                        slug: (formData.get('name') as string).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+                        description: formData.get('description') as string,
+                        shortDescription: formData.get('shortDescription') as string,
+                        price: parseFloat(formData.get('price') as string),
+                        salePrice: formData.get('salePrice') ? parseFloat(formData.get('salePrice') as string) : undefined,
+                        categoryId: parseInt(formData.get('categoryId') as string),
+                        images: newProductImages,
+                        colors: colors ? colors.split(',').map(s => s.trim()).filter(Boolean) : [],
+                        sizes: sizes ? sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+                        inStock: formData.get('inStock') === 'on',
+                        featured: formData.get('featured') === 'on',
+                        isNew: formData.get('isNew') === 'on',
+                        onSale: formData.get('onSale') === 'on',
+                      });
+                    }}>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Название *</label>
+                          <input
+                            name="name"
+                            type="text"
+                            className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Категория *</label>
+                          <select
+                            name="categoryId"
+                            className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                            required
+                          >
+                            <option value="">Выберите категорию</option>
+                            {categories?.map(cat => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Цена *</label>
+                            <input
+                              name="price"
+                              type="number"
+                              step="0.01"
+                              className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Цена со скидкой</label>
+                            <input
+                              name="salePrice"
+                              type="number"
+                              step="0.01"
+                              className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Краткое описание</label>
+                          <input
+                            name="shortDescription"
+                            type="text"
+                            className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Описание</label>
+                          <textarea
+                            name="description"
+                            rows={4}
+                            className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Изображения товара</label>
+                          <ImageManager
+                            images={newProductImages}
+                            onImagesChange={setNewProductImages}
+                            maxImages={8}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Цвета (через запятую)</label>
+                            <input
+                              name="colors"
+                              type="text"
+                              className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                              placeholder="#000000, #ffffff, #ff0000"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Размеры (через запятую)</label>
+                            <input
+                              name="sizes"
+                              type="text"
+                              className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
+                              placeholder="XS, S, M, L, XL"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              name="inStock"
+                              type="checkbox"
+                              defaultChecked={true}
+                              className="rounded"
+                            />
+                            <label className="text-sm">В наличии</label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              name="featured"
+                              type="checkbox"
+                              className="rounded"
+                            />
+                            <label className="text-sm">Рекомендуемый</label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              name="isNew"
+                              type="checkbox"
+                              defaultChecked={true}
+                              className="rounded"
+                            />
+                            <label className="text-sm">Новый</label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              name="onSale"
+                              type="checkbox"
+                              className="rounded"
+                            />
+                            <label className="text-sm">Со скидкой</label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end space-x-3 mt-6">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddProduct(false);
+                            setNewProductImages([]);
+                          }}
+                          className="px-4 py-2 border border-luxury-300 text-luxury-700 hover:bg-luxury-50 transition-colors"
+                        >
+                          Отмена
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={createProductMutation.isLoading}
+                          className="px-4 py-2 bg-primary-950 text-white hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                        >
+                          {createProductMutation.isLoading ? 'Создание...' : 'Создать товар'}
                         </button>
                       </div>
                     </form>
