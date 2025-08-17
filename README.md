@@ -82,6 +82,14 @@ lepatage-react/
 
 ### Development
 
+**Быстрый запуск (рекомендуется):**
+```bash
+npm run dev:full
+```
+Запустит одновременно фронтенд и API сервер.
+
+**Отдельный запуск:**
+
 1. **Start the backend server**:
    ```bash
    npm run server
