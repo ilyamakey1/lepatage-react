@@ -156,6 +156,22 @@ async function seedDatabase() {
         featured: true,
         tags: JSON.stringify(['geometric', 'modern', 'perfect'])
       },
+      {
+        name: 'Корсет "ARMOR"',
+        slug: 'corset-armor',
+        description: 'Корсет ARMOR - воплощение силы и защиты. Инновационный дизайн с элементами брони создает мощный и неповторимый образ для уверенных в себе женщин.',
+        shortDescription: 'Корсет с элементами брони для сильных духом',
+        price: 24900,
+        salePrice: 19900,
+        categoryId: categoryMap.corsets,
+        images: JSON.stringify(['/assets/corset-avegue.jpg', '/assets/719A0649.jpg', '/assets/719A0664.jpg']),
+        colors: JSON.stringify(['#000000', '#2c2c2c', '#8b0000', '#ffffff']),
+        sizes: JSON.stringify(['XS', 'S', 'M', 'L', 'XL']),
+        inStock: true,
+        featured: true,
+        onSale: true,
+        tags: JSON.stringify(['armor', 'powerful', 'protection', 'bestseller'])
+      },
 
       // Belts
       {
