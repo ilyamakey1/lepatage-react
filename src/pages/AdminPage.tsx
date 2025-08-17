@@ -3,6 +3,7 @@ import { Mail, Users, Download, Trash2, RefreshCw, Shield, UserCheck, Package, E
 import { trpc } from '../utils/trpc';
 import { cn } from '../utils/cn';
 import { useAuth } from '../contexts/AuthContext';
+import { ImageManager } from '../components/ImageManager';
 
 export const AdminPage: React.FC = () => {
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
@@ -11,6 +12,7 @@ export const AdminPage: React.FC = () => {
   const [orderToEdit, setOrderToEdit] = useState<any>(null);
   const [productToEdit, setProductToEdit] = useState<any>(null);
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [editingProductImages, setEditingProductImages] = useState<string[]>([]);
   
   const { state: authState } = useAuth();
 
@@ -48,6 +50,7 @@ export const AdminPage: React.FC = () => {
     onSuccess: () => {
       refetchProducts();
       setProductToEdit(null);
+      setEditingProductImages([]);
     },
   });
 
@@ -592,7 +595,10 @@ export const AdminPage: React.FC = () => {
 
                     <div className="col-span-2 flex items-center space-x-2">
                       <button
-                        onClick={() => setProductToEdit(product)}
+                        onClick={() => {
+                          setProductToEdit(product);
+                          setEditingProductImages(product.images || []);
+                        }}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         title="Редактировать"
                       >
@@ -706,13 +712,17 @@ export const AdminPage: React.FC = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-1">Изображения (URL через запятую)</label>
-                          <textarea
+                          <label className="block text-sm font-medium mb-2">Изображения товара</label>
+                          <ImageManager
+                            images={editingProductImages}
+                            onImagesChange={setEditingProductImages}
+                            maxImages={8}
+                          />
+                          {/* Hidden input for form submission */}
+                          <input
+                            type="hidden"
                             name="images"
-                            rows={3}
-                            defaultValue={(productToEdit.images || []).join(', ')}
-                            className="w-full px-3 py-2 border border-luxury-300 rounded focus:outline-none focus:border-primary-700"
-                            placeholder="/assets/image1.jpg, /assets/image2.jpg"
+                            value={editingProductImages.join(',')}
                           />
                         </div>
 
@@ -782,7 +792,10 @@ export const AdminPage: React.FC = () => {
                       <div className="flex justify-end space-x-3 mt-6">
                         <button
                           type="button"
-                          onClick={() => setProductToEdit(null)}
+                          onClick={() => {
+                            setProductToEdit(null);
+                            setEditingProductImages([]);
+                          }}
                           className="px-4 py-2 border border-luxury-300 text-luxury-700 hover:bg-luxury-50 transition-colors"
                         >
                           Отмена

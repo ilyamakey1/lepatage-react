@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './router.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +26,79 @@ app.use(express.json());
 
 // Static files
 app.use('/assets', express.static(path.join(__dirname, '../public/assets')));
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../public/assets');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only images
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
+
+// Upload endpoint
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    res.json({ 
+      success: true, 
+      imageUrl,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// Delete image endpoint
+app.delete('/api/images/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const filePath = path.join(uploadsDir, filename);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      res.json({ success: true, message: 'Image deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Image not found' });
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
 
 // tRPC middleware
 app.use('/api', createExpressMiddleware({
