@@ -92,59 +92,22 @@ export const ProductPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Images - With Dots Navigation */}
-          <div className="space-y-4">
+          {/* Product Images - Vertical Gallery */}
+          <div className="flex gap-4">
             {product.images && product.images.length > 0 ? (
               <>
-                {/* Main Image */}
-                <div className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg">
-                  <img
-                    src={product.images[currentImageIndex]}
-                    alt={`${product.name} ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover transition-opacity duration-300"
-                  />
-                  
-                  {/* Touch/Swipe Area for mobile */}
-                  <div 
-                    className="absolute inset-0 cursor-pointer"
-                    onClick={() => {
-                      const nextIndex = (currentImageIndex + 1) % product.images.length;
-                      setCurrentImageIndex(nextIndex);
-                    }}
-                  />
-                </div>
-
-                {/* Dots Navigation */}
+                {/* Thumbnail Vertical List */}
                 {product.images.length > 1 && (
-                  <div className="flex justify-center space-x-2 py-4">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={cn(
-                          "w-3 h-3 rounded-full transition-all duration-300",
-                          index === currentImageIndex
-                            ? "bg-primary-950 scale-110"
-                            : "bg-luxury-300 hover:bg-luxury-400"
-                        )}
-                        aria-label={`Изображение ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Thumbnail Grid (optional, smaller) */}
-                {product.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto w-20">
                     {product.images.map((image, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
                         className={cn(
-                          "aspect-square overflow-hidden rounded transition-all duration-300",
+                          "w-16 h-16 flex-shrink-0 overflow-hidden rounded transition-all duration-300 border-2",
                           index === currentImageIndex
-                            ? "ring-2 ring-primary-950 ring-offset-2"
-                            : "opacity-70 hover:opacity-100"
+                            ? "border-primary-950 ring-2 ring-primary-950 ring-opacity-30"
+                            : "border-luxury-200 opacity-70 hover:opacity-100 hover:border-luxury-400"
                         )}
                       >
                         <img
@@ -156,6 +119,52 @@ export const ProductPage: React.FC = () => {
                     ))}
                   </div>
                 )}
+
+                {/* Main Image */}
+                <div className="flex-1">
+                  <div className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg">
+                    <img
+                      src={product.images[currentImageIndex]}
+                      alt={`${product.name} ${currentImageIndex + 1}`}
+                      className="w-full h-full object-cover transition-all duration-300"
+                    />
+                    
+                    {/* Navigation Arrows */}
+                    {product.images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => {
+                            const prevIndex = currentImageIndex === 0 
+                              ? product.images.length - 1 
+                              : currentImageIndex - 1;
+                            setCurrentImageIndex(prevIndex);
+                          }}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 transition-all duration-300 shadow-lg"
+                        >
+                          <ArrowLeft size={20} className="text-luxury-950" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const nextIndex = (currentImageIndex + 1) % product.images.length;
+                            setCurrentImageIndex(nextIndex);
+                          }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 transition-all duration-300 shadow-lg"
+                        >
+                          <ArrowLeft size={20} className="text-luxury-950 rotate-180" />
+                        </button>
+                      </>
+                    )}
+
+                    {/* Image Counter */}
+                    {product.images.length > 1 && (
+                      <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                        {currentImageIndex + 1} / {product.images.length}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+
               </>
             ) : (
               <div className="w-full h-96 flex items-center justify-center bg-luxury-50 rounded-lg">
