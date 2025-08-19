@@ -4,8 +4,10 @@ import {
   products, 
   productVariants, 
   collections, 
-  collectionProducts 
+  collectionProducts,
+  users
 } from './schema.js';
+import { eq } from 'drizzle-orm';
 
 async function seedDatabase() {
   console.log('Seeding database...');
@@ -317,6 +319,35 @@ async function seedDatabase() {
 
       await db.insert(collectionProducts).values(collectionProductData);
       console.log('Collection products linked');
+    }
+
+    // Create admin user
+    console.log('Creating admin user...');
+    
+    // Check if admin already exists
+    const existingAdmin = await db.select().from(users).where(eq(users.isAdmin, true)).limit(1);
+    
+    if (existingAdmin.length === 0) {
+      // Hash password
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.default.hash('admin123', 10);
+      
+      // Create admin user
+      const adminUser = await db.insert(users).values({
+        email: 'admin@lepatage.by',
+        passwordHash: hashedPassword,
+        firstName: 'Администратор',
+        lastName: 'Системы',
+        phone: '+375291234567',
+        isAdmin: true
+      }).returning();
+      
+      console.log('Admin user created successfully!');
+      console.log('Email: admin@lepatage.by');
+      console.log('Password: admin123');
+      console.log('User ID:', adminUser[0].id);
+    } else {
+      console.log('Admin user already exists:', existingAdmin[0].email);
     }
 
     console.log('Database seeded successfully!');
