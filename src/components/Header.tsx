@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = () => {
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
@@ -37,15 +37,7 @@ export const Header: React.FC<HeaderProps> = () => {
     { enabled: searchQuery.length >= 2 }
   );
 
-  // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
-    };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Handle outside clicks
   useEffect(() => {
@@ -79,11 +71,7 @@ export const Header: React.FC<HeaderProps> = () => {
   return (
     <>
     <header className={cn(
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-      isHomePage ? (
-        isScrolled ? 'bg-white/98 backdrop-blur-md minimal-border' : 'bg-transparent'
-      ) : 'bg-white/98 backdrop-blur-md minimal-border',
-      isScrolled && !isHomePage && 'bg-white'
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-transparent'
     )}>
       <div className="w-full px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
@@ -91,34 +79,19 @@ export const Header: React.FC<HeaderProps> = () => {
           <nav className="flex items-center space-x-6">
             <Link
               to="/catalog/corsets"
-              className={cn(
-                "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
-                isHomePage && !isScrolled 
-                  ? "text-white hover:text-white/80" 
-                  : "text-luxury-950 hover:text-primary-950"
-              )}
+              className="font-medium text-sm tracking-wider font-luxury transition-all duration-300 text-white hover:text-white/80"
             >
               КОРСЕТЫ
             </Link>
             <Link
               to="/catalog/bags"
-              className={cn(
-                "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
-                isHomePage && !isScrolled 
-                  ? "text-white hover:text-white/80" 
-                  : "text-luxury-950 hover:text-primary-950"
-              )}
+              className="font-medium text-sm tracking-wider font-luxury transition-all duration-300 text-white hover:text-white/80"
             >
               СУМКИ
             </Link>
             <Link
               to="/catalog/accessories"
-              className={cn(
-                "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
-                isHomePage && !isScrolled 
-                  ? "text-white hover:text-white/80" 
-                  : "text-luxury-950 hover:text-primary-950"
-              )}
+              className="font-medium text-sm tracking-wider font-luxury transition-all duration-300 text-white hover:text-white/80"
             >
               АКСЕССУАРЫ
             </Link>
@@ -128,12 +101,7 @@ export const Header: React.FC<HeaderProps> = () => {
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="block">
               <span 
-                className={cn(
-                  "font-serif text-xl font-light tracking-wide transition-all duration-300 hover:opacity-80",
-                  isHomePage && !isScrolled 
-                    ? "text-white" 
-                    : "text-luxury-950"
-                )}
+                className="font-serif text-xl font-light tracking-wide transition-all duration-300 hover:opacity-80 text-white"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 L'ÉPATAGE
@@ -146,12 +114,7 @@ export const Header: React.FC<HeaderProps> = () => {
             <div className="relative" ref={searchRef}>
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={cn(
-                  "p-2 transition-all duration-300",
-                  isHomePage && !isScrolled 
-                    ? "text-white hover:text-white/80" 
-                    : "text-luxury-950 hover:text-primary-950"
-                )}
+                className="p-2 transition-all duration-300 text-white hover:text-white/80"
               >
                 <Search size={16} />
               </button>
@@ -233,12 +196,7 @@ export const Header: React.FC<HeaderProps> = () => {
 
             <Link 
               to="/cart" 
-              className={cn(
-                "relative p-2 transition-all duration-300",
-                isHomePage && !isScrolled 
-                  ? "text-white hover:text-white/80" 
-                  : "text-luxury-950 hover:text-primary-950"
-              )}
+              className="relative p-2 transition-all duration-300 text-white hover:text-white/80"
             >
               <ShoppingBag size={16} />
               {cartState.itemCount > 0 && (
@@ -252,12 +210,7 @@ export const Header: React.FC<HeaderProps> = () => {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className={cn(
-                    "p-2 transition-all duration-300",
-                    isHomePage && !isScrolled 
-                      ? "text-white hover:text-white/80" 
-                      : "text-luxury-950 hover:text-primary-950"
-                  )}
+                  className="p-2 transition-all duration-300 text-white hover:text-white/80"
                 >
                   <User size={16} />
                 </button>
@@ -311,12 +264,7 @@ export const Header: React.FC<HeaderProps> = () => {
             ) : (
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className={cn(
-                  "p-2 transition-all duration-300",
-                  isHomePage && !isScrolled 
-                    ? "text-white hover:text-white/80" 
-                    : "text-luxury-950 hover:text-primary-950"
-                )}
+                className="p-2 transition-all duration-300 text-white hover:text-white/80"
               >
                 <User size={16} />
               </button>
