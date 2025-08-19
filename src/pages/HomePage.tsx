@@ -41,54 +41,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Horizontal Categories Menu */}
-      <section className="py-16 bg-white border-b border-luxury-100">
-        <div className="max-w-6xl mx-auto px-8 lg:px-12">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-luxury-950 mb-4">Каталог</h2>
-            <p className="text-luxury-600 max-w-2xl mx-auto">
-              Откройте для себя нашу эксклюзивную коллекцию корсетов, аксессуаров и украшений
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {categories?.map((category) => (
-              <Link
-                key={category.id}
-                to={`/catalog/${category.slug}`}
-                className="group text-center"
-              >
-                <div className="relative overflow-hidden rounded-lg mb-4 aspect-square bg-luxury-50">
-                  <img
-                    src={category.image || '/assets/placeholder.jpg'}
-                    alt={category.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
-                </div>
-                <h3 className="font-semibold text-luxury-950 group-hover:text-primary-950 transition-colors duration-300">
-                  {category.name}
-                </h3>
-                <p className="text-sm text-luxury-600 mt-1">
-                  {category.description}
-                </p>
-              </Link>
-            ))}
-          </div>
-
-          {/* New In Section */}
-          <div className="mt-16 text-center">
-            <Link
-              to="/catalog?featured=true"
-              className="inline-flex items-center space-x-2 px-8 py-3 bg-primary-950 text-white hover:bg-primary-700 transition-all duration-300 font-medium tracking-wider uppercase"
-            >
-              <span>New In</span>
-              <ChevronRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Category Sections */}
       {categorySections.map((section, sectionIndex) => (
         <section key={sectionIndex} className="min-h-screen flex flex-col lg:flex-row">

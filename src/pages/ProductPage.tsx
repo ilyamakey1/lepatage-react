@@ -96,66 +96,21 @@ export const ProductPage: React.FC = () => {
           <div className="space-y-4">
             {product.images && product.images.length > 0 ? (
               <>
-                {/* Main Image */}
-                <div className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg">
-                  <img
-                    src={product.images[currentImageIndex]}
-                    alt={`${product.name} ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover transition-opacity duration-300"
-                  />
-                  
-                  {/* Touch/Swipe Area for mobile */}
-                  <div 
-                    className="absolute inset-0 cursor-pointer"
-                    onClick={() => {
-                      const nextIndex = (currentImageIndex + 1) % product.images.length;
-                      setCurrentImageIndex(nextIndex);
-                    }}
-                  />
-                </div>
-
-                {/* Dots Navigation */}
-                {product.images.length > 1 && (
-                  <div className="flex justify-center space-x-2 py-4">
-                    {product.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={cn(
-                          "w-3 h-3 rounded-full transition-all duration-300",
-                          index === currentImageIndex
-                            ? "bg-primary-950 scale-110"
-                            : "bg-luxury-300 hover:bg-luxury-400"
-                        )}
-                        aria-label={`Изображение ${index + 1}`}
+                {/* Vertical Scrollable Gallery */}
+                <div className="space-y-4 max-h-[80vh] overflow-y-auto">
+                  {product.images.map((image, index) => (
+                    <div
+                      key={index}
+                      className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg"
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.name} ${index + 1}`}
+                        className="w-full h-full object-cover"
                       />
-                    ))}
-                  </div>
-                )}
-
-                {/* Thumbnail Grid (optional, smaller) */}
-                {product.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {product.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={cn(
-                          "aspect-square overflow-hidden rounded transition-all duration-300",
-                          index === currentImageIndex
-                            ? "ring-2 ring-primary-950 ring-offset-2"
-                            : "opacity-70 hover:opacity-100"
-                        )}
-                      >
-                        <img
-                          src={image}
-                          alt={`${product.name} ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
 
 
               </>

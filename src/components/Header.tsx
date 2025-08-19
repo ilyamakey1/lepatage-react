@@ -12,14 +12,14 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = () => {
-  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  const catalogRef = useRef<HTMLDivElement>(null);
+
   const searchRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -48,9 +48,7 @@ export const Header: React.FC<HeaderProps> = () => {
   // Handle outside clicks
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (catalogRef.current && !catalogRef.current.contains(event.target as Node)) {
-        setIsCatalogOpen(false);
-      }
+
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
         setSearchQuery('');
@@ -68,7 +66,7 @@ export const Header: React.FC<HeaderProps> = () => {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsCatalogOpen(false);
+
         setIsSearchOpen(false);
         setSearchQuery('');
       }
@@ -91,121 +89,45 @@ export const Header: React.FC<HeaderProps> = () => {
         <div className="flex items-center justify-between h-16">
           {/* Left Side - Catalog and Navigation */}
           <div className="flex items-center space-x-6">
-            <div className="relative" ref={catalogRef}>
-              <button
-                onClick={() => setIsCatalogOpen(!isCatalogOpen)}
+            <nav className="flex items-center space-x-6">
+              <Link
+                to="/catalog/corsets"
                 className={cn(
-                  "flex items-center space-x-2 px-3 py-1 transition-all duration-300 group",
+                  "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
                   isHomePage && !isScrolled 
                     ? "text-white hover:text-white/80" 
                     : "text-luxury-950 hover:text-primary-950"
                 )}
               >
-                <div className="flex flex-col space-y-0.5">
-                  <span className={cn(
-                    "w-3 h-0.5 transition-colors duration-300",
-                    isHomePage && !isScrolled 
-                      ? "bg-white group-hover:bg-white/80" 
-                      : "bg-luxury-950 group-hover:bg-primary-950"
-                  )}></span>
-                  <span className={cn(
-                    "w-3 h-0.5 transition-colors duration-300",
-                    isHomePage && !isScrolled 
-                      ? "bg-white group-hover:bg-white/80" 
-                      : "bg-luxury-950 group-hover:bg-primary-950"
-                  )}></span>
-                  <span className={cn(
-                    "w-3 h-0.5 transition-colors duration-300",
-                    isHomePage && !isScrolled 
-                      ? "bg-white group-hover:bg-white/80" 
-                      : "bg-luxury-950 group-hover:bg-primary-950"
-                  )}></span>
-                </div>
-                <span className="font-medium text-xs tracking-wider font-luxury">КАТАЛОГ</span>
-              </button>
-
-              {/* Catalog Dropdown */}
-              {isCatalogOpen && (
-                <div className="absolute top-full left-0 mt-1 w-64 glass-effect minimal-border rounded overflow-hidden animate-fade-in-up">
-                  <div className="p-4 border-b border-luxury-200">
-                    <img 
-                      src="/assets/logo-catalog.png" 
-                      alt="L'EPATAGE Catalog" 
-                      className="h-6 mx-auto opacity-90 hover:opacity-100 transition-opacity"
-                    />
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="font-sans text-sm font-medium text-luxury-950 mb-3 tracking-wide">
-                      Смотреть все
-                    </h3>
-                    <ul className="space-y-2">
-                      {categories?.map((category) => (
-                        <li key={category.id}>
-                          <Link
-                            to={`/catalog/${category.slug}`}
-                            className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-xs font-luxury"
-                            onClick={() => setIsCatalogOpen(false)}
-                          >
-                            {category.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="p-4 border-t border-luxury-200">
-                    <h3 className="font-sans text-sm font-medium text-luxury-950 mb-3 tracking-wide">
-                      Подборки
-                    </h3>
-                    <ul className="space-y-2">
-                      <li>
-                        <Link 
-                          to="/collections/lepatage-smev"
-                          className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-xs font-luxury"
-                          onClick={() => setIsCatalogOpen(false)}
-                        >
-                          L'epatage x Smev
-                        </Link>
-                      </li>
-                      <li>
-                        <Link 
-                          to="/collections/lepatage-krikate"
-                          className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-xs font-luxury"
-                          onClick={() => setIsCatalogOpen(false)}
-                        >
-                          L'epatage x Krikate
-                        </Link>
-                      </li>
-                      <li>
-                        <Link 
-                          to="/collections/evening-looks"
-                          className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-xs font-luxury"
-                          onClick={() => setIsCatalogOpen(false)}
-                        >
-                          Вечерние образы
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <nav className="hidden md:flex items-center space-x-8">
-
-              <Link 
-                to="/new" 
+                КОРСЕТЫ
+              </Link>
+              <Link
+                to="/catalog/bags"
                 className={cn(
-                  "font-medium text-xs tracking-wider transition-colors duration-300 font-luxury",
+                  "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
                   isHomePage && !isScrolled 
                     ? "text-white hover:text-white/80" 
                     : "text-luxury-950 hover:text-primary-950"
                 )}
               >
-                NEW IN
+                СУМКИ
+              </Link>
+              <Link
+                to="/catalog/accessories"
+                className={cn(
+                  "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
+                  isHomePage && !isScrolled 
+                    ? "text-white hover:text-white/80" 
+                    : "text-luxury-950 hover:text-primary-950"
+                )}
+              >
+                АКСЕССУАРЫ
               </Link>
             </nav>
+
+
+
+
           </div>
 
           {/* Center - Logo */}
