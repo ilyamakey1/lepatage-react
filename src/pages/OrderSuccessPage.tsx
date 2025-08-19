@@ -119,15 +119,15 @@ export const OrderSuccessPage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="font-semibold text-luxury-950">Статус заказа</div>
-              <div className={`font-medium ${getStatusColor(order.status)}`}>
-                {getStatusText(order.status)}
+              <div className={`font-medium ${getStatusColor(order.status || 'pending')}`}>
+                {getStatusText(order.status || 'pending')}
               </div>
             </div>
             <div className="text-center">
               <CreditCard size={32} className="text-primary-950 mx-auto mb-2" />
               <div className="font-semibold text-luxury-950">Статус оплаты</div>
-              <div className={`font-medium ${getStatusColor(order.paymentStatus)}`}>
-                {getStatusText(order.paymentStatus, true)}
+              <div className={`font-medium ${getStatusColor(order.paymentStatus || 'pending')}`}>
+                {getStatusText(order.paymentStatus || 'pending', true)}
               </div>
             </div>
           </div>
@@ -189,9 +189,9 @@ export const OrderSuccessPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-sm text-luxury-600">
                   <span>Доставка:</span>
-                  <span>{formatPrice(order.shipping)}</span>
+                  <span>{formatPrice(order.shipping || 0)}</span>
                 </div>
-                {order.tax > 0 && (
+                {order.tax && order.tax > 0 && (
                   <div className="flex justify-between text-sm text-luxury-600">
                     <span>Налоги:</span>
                     <span>{formatPrice(order.tax)}</span>
@@ -199,7 +199,7 @@ export const OrderSuccessPage: React.FC = () => {
                 )}
                 <div className="flex justify-between text-lg font-semibold text-luxury-950 border-t border-luxury-200 pt-2">
                   <span>Итого:</span>
-                  <span>{formatPrice(order.total)}</span>
+                  <span>{formatPrice(order.total || 0)}</span>
                 </div>
               </div>
             </div>
@@ -225,20 +225,22 @@ export const OrderSuccessPage: React.FC = () => {
                 <Truck size={16} />
                 <span>Адрес доставки</span>
               </h3>
-              <div className="text-sm text-luxury-600">
-                {order.shippingAddress && (
-                  <>
-                    <div>{order.shippingAddress.country}, {order.shippingAddress.city}</div>
-                    <div>{order.shippingAddress.address}</div>
-                    {order.shippingAddress.postalCode && (
-                      <div>{order.shippingAddress.postalCode}</div>
-                    )}
-                    {order.shippingAddress.region && (
-                      <div>{order.shippingAddress.region}</div>
-                    )}
-                  </>
-                )}
-              </div>
+                              <div className="text-sm text-luxury-600">
+                  {order.shippingAddress ? (
+                    <>
+                      <div>{order.shippingAddress.country}, {order.shippingAddress.city}</div>
+                      <div>{order.shippingAddress.address}</div>
+                      {order.shippingAddress.postalCode && (
+                        <div>{order.shippingAddress.postalCode}</div>
+                      )}
+                      {order.shippingAddress.region && (
+                        <div>{order.shippingAddress.region}</div>
+                      )}
+                    </>
+                  ) : (
+                    <div>Адрес не указан</div>
+                  )}
+                </div>
             </div>
 
             {/* Payment Info */}
@@ -253,7 +255,7 @@ export const OrderSuccessPage: React.FC = () => {
             {order.notes && (
               <div className="border border-luxury-200 rounded-lg p-4">
                 <h3 className="font-semibold text-luxury-950 mb-2">Комментарий</h3>
-                <div className="text-sm text-luxury-600">{order.notes}</div>
+                <div className="text-sm text-luxury-600">{order.notes || ''}</div>
               </div>
             )}
           </div>
