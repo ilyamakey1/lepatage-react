@@ -12,19 +12,19 @@ export const HomePage: React.FC = () => {
   // Category sections data
   const categorySections = [
     {
-      categories: ['corsets', 'belts'],
-      title: 'Корсеты и Пояса',
-      data: categories?.filter(cat => ['corsets', 'belts'].includes(cat.slug))
+      categories: ['corsets'],
+      title: 'Корсеты',
+      data: categories?.filter(cat => ['corsets'].includes(cat.slug))
     },
     {
-      categories: ['bags', 'cases'],
-      title: 'Сумки и Чехлы',
-      data: categories?.filter(cat => ['bags', 'cases'].includes(cat.slug))
+      categories: ['bags'],
+      title: 'Сумки',
+      data: categories?.filter(cat => ['bags'].includes(cat.slug))
     },
     {
-      categories: ['accessories', 'jewelry'],
-      title: 'Аксессуары и Украшения',
-      data: categories?.filter(cat => ['accessories', 'jewelry'].includes(cat.slug))
+      categories: ['accessories'],
+      title: 'Аксессуары',
+      data: categories?.filter(cat => ['accessories'].includes(cat.slug))
     }
   ];
 

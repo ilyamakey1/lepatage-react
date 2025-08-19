@@ -22,34 +22,16 @@ async function seedDatabase() {
         image: '/assets/corsets.jpg'
       },
       { 
-        name: 'Пояса', 
-        slug: 'belts', 
-        description: 'Стильные пояса для завершения любого образа',
-        image: '/assets/belts.jpg'
-      },
-      { 
-        name: 'Аксессуары', 
-        slug: 'accessories', 
-        description: 'Стильные аксессуары для завершения образа',
-        image: '/assets/accessories.jpg'
-      },
-      { 
-        name: 'Украшения', 
-        slug: 'jewelry', 
-        description: 'Изысканные украшения для создания неповторимого образа',
-        image: '/assets/jewelry.jpg'
-      },
-      { 
         name: 'Сумки', 
         slug: 'bags', 
         description: 'Стильные сумки для любого случая',
         image: '/assets/bags.jpg'
       },
       { 
-        name: 'Чехлы', 
-        slug: 'cases', 
-        description: 'Защитные чехлы для ваших любимых вещей',
-        image: '/assets/cases.jpg'
+        name: 'Аксессуары', 
+        slug: 'accessories', 
+        description: 'Стильные аксессуары для завершения образа',
+        image: '/assets/accessories.jpg'
       },
     ];
 
@@ -175,7 +157,7 @@ async function seedDatabase() {
         tags: JSON.stringify(['armor', 'powerful', 'protection', 'bestseller'])
       },
 
-      // Belts
+      // Accessories (former belts)
       {
         name: 'Пояс "Элеганс"',
         slug: 'belt-elegance',
@@ -183,7 +165,7 @@ async function seedDatabase() {
         shortDescription: 'Стильный пояс - идеальное дополнение к любому образу',
         price: 11900,
         salePrice: 8900,
-        categoryId: categoryMap.belts,
+        categoryId: categoryMap.accessories,
         images: JSON.stringify(['/assets/belts.jpg']),
         colors: JSON.stringify(['#000000', '#8b0000', '#654321']),
         sizes: JSON.stringify(['S', 'M', 'L']),
@@ -197,7 +179,7 @@ async function seedDatabase() {
         description: 'Роскошный пояс с декоративными элементами. Создан для особых вечерних мероприятий.',
         shortDescription: 'Роскошный пояс с декоративными элементами',
         price: 12900,
-        categoryId: categoryMap.belts,
+        categoryId: categoryMap.accessories,
         images: JSON.stringify(['/assets/belts.jpg']),
         colors: JSON.stringify(['#000000', '#8b0000']),
         sizes: JSON.stringify(['S', 'M', 'L']),
@@ -221,7 +203,7 @@ async function seedDatabase() {
         tags: JSON.stringify(['charm', 'versatile'])
       },
 
-      // Jewelry
+      // Accessories (former jewelry)
       {
         name: 'Украшение "Грейс"',
         slug: 'jewelry-grace',
@@ -229,7 +211,7 @@ async function seedDatabase() {
         shortDescription: 'Утонченное украшение - воплощение элегантности и стиля',
         price: 24900,
         salePrice: 18900,
-        categoryId: categoryMap.jewelry,
+        categoryId: categoryMap.accessories,
         images: JSON.stringify(['/assets/jewelry.jpg']),
         colors: JSON.stringify(['#000000', '#8b0000']),
         inStock: true,
@@ -255,7 +237,7 @@ async function seedDatabase() {
         tags: JSON.stringify(['luxury', 'functional', 'premium'])
       },
 
-      // Cases
+      // Accessories (former cases)
       {
         name: 'Чехол "Премиум"',
         slug: 'case-premium',
@@ -263,7 +245,7 @@ async function seedDatabase() {
         shortDescription: 'Премиальный чехол обеспечивает надежную защиту и стильный внешний вид',
         price: 4900,
         salePrice: 3900,
-        categoryId: categoryMap.cases,
+        categoryId: categoryMap.accessories,
         images: JSON.stringify(['/assets/cases.jpg']),
         colors: JSON.stringify(['#000000', '#8b0000']),
         inStock: true,
@@ -307,7 +289,7 @@ async function seedDatabase() {
 
     // Add some products to collections
     const featuredProducts = insertedProducts.filter(p => 
-      ['corset-avegue', 'jewelry-grace', 'bag-luxury'].includes(p.slug)
+      ['corset-vivienne', 'jewelry-grace', 'bag-luxury'].includes(p.slug)
     );
 
     if (featuredProducts.length > 0 && insertedCollections.length > 0) {

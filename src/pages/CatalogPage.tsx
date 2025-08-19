@@ -20,15 +20,7 @@ export const CatalogPage: React.FC = () => {
   const categoryIds = useMemo(() => {
     if (!categorySlug || !categories) return undefined;
     
-    // Для аксессуаров показываем товары из поясов, украшений и чехлов
-    if (categorySlug === 'accessories') {
-      const accessoryCategories = categories.filter(cat => 
-        ['belts', 'jewelry', 'cases'].includes(cat.slug)
-      );
-      return accessoryCategories.map(cat => cat.id);
-    }
-    
-    // Для остальных категорий показываем только товары из этой категории
+    // Для всех категорий показываем только товары из этой категории
     const category = categories.find(cat => cat.slug === categorySlug);
     return category ? [category.id] : undefined;
   }, [categorySlug, categories]);
