@@ -247,7 +247,7 @@ export const OrderSuccessPage: React.FC = () => {
             <div className="border border-luxury-200 rounded-lg p-4 mb-4">
               <h3 className="font-semibold text-luxury-950 mb-2">Способ оплаты</h3>
               <div className="text-sm text-luxury-600">
-                {getPaymentMethodName(order.paymentMethod)}
+                {getPaymentMethodName(order.paymentMethod || 'transfer')}
               </div>
             </div>
 
