@@ -15,7 +15,7 @@ export const AdminLoginPage: React.FC = () => {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async (data) => {
       if (data.user.isAdmin) {
-        const result = await login(data.email, data.password);
+        const result = await login(email, password);
         if (result.success) {
           navigate('/admin');
         } else {
