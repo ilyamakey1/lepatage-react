@@ -15,8 +15,7 @@ export const AdminPage: React.FC = () => {
     limit: 100
   });
 
-  const { data: orders } = trpc.orders.getAll.useQuery();
-
+  const { data: orders } = trpc.orders.getAll.useQuery({ limit: 100, offset: 0 });
   const { data: users } = trpc.auth.getAllUsers.useQuery();
 
   const deleteProductMutation = trpc.products.delete.useMutation({
