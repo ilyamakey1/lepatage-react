@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '../types';
+import { cn } from '../utils/cn';
 
 interface ProductCardProps {
   product: Product;
@@ -52,11 +53,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleImageClick}
       >
+        {/* Main Image */}
         <img
           src={product.images[currentImageIndex] || '/assets/placeholder.jpg'}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className={cn(
+            "w-full h-full object-cover transition-all duration-500",
+            isHovered && hasMultipleImages ? "opacity-0" : "opacity-100"
+          )}
         />
+        
+        {/* Hover Image (Second Image) */}
+        {hasMultipleImages && (
+          <img
+            src={product.images[(currentImageIndex + 1) % product.images.length] || '/assets/placeholder.jpg'}
+            alt={product.name}
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-all duration-500",
+              isHovered ? "opacity-100" : "opacity-0"
+            )}
+          />
+        )}
         
         {/* Image Navigation - только если есть несколько изображений и при наведении */}
         {hasMultipleImages && isHovered && (

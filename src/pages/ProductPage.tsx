@@ -14,7 +14,6 @@ export const ProductPage: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
-  const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(null);
 
   const { data: product, isLoading, error } = trpc.products.getBySlug.useQuery(
     { slug: slug! },
@@ -112,31 +111,13 @@ export const ProductPage: React.FC = () => {
                   {product.images.map((image: string, index: number) => (
                     <div
                       key={index}
-                      className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg group"
-                      onMouseEnter={() => setHoveredImageIndex(index)}
-                      onMouseLeave={() => setHoveredImageIndex(null)}
+                      className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg"
                     >
-                      {/* Main Image */}
                       <img
                         src={image}
                         alt={`${product.name} ${index + 1}`}
-                        className={cn(
-                          "w-full h-full object-cover transition-all duration-500",
-                          hoveredImageIndex === index ? "opacity-0" : "opacity-100"
-                        )}
+                        className="w-full h-full object-cover"
                       />
-                      
-                      {/* Hover Image (Second Image) */}
-                      {product.images.length > 1 && (
-                        <img
-                          src={product.images[(index + 1) % product.images.length]}
-                          alt={`${product.name} ${index + 2}`}
-                          className={cn(
-                            "absolute inset-0 w-full h-full object-cover transition-all duration-500",
-                            hoveredImageIndex === index ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                      )}
                     </div>
                   ))}
                 </div>
