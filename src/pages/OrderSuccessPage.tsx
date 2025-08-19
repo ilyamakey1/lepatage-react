@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+
 import { useParams, Link } from 'react-router-dom';
 import { CheckCircle, ArrowLeft, Package, CreditCard, Truck } from 'lucide-react';
 import { trpc } from '../utils/trpc';

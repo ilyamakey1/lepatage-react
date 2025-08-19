@@ -21,7 +21,8 @@ interface CustomerInfo {
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { items, total, clearCart } = useCart();
+  const { state, clearCart } = useCart();
+  const { items, total } = state;
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,7 +46,7 @@ export const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<'bepaid' | 'cash' | 'transfer'>('bepaid');
   const [currency, setCurrency] = useState<'BYN' | 'EUR' | 'USD' | 'RUB'>('BYN');
   const [notes, setNotes] = useState('');
-  const [sameBilling, setSameBilling] = useState(true);
+  const [sameBilling] = useState(true);
 
   // tRPC mutations
   const createOrderMutation = trpc.orders.create.useMutation();
@@ -117,7 +118,7 @@ export const CheckoutPage: React.FC = () => {
         billingAddress: sameBilling ? undefined : shippingAddress,
         currency,
         paymentMethod,
-        items: items.map(item => ({
+        items: items.map((item: any) => ({
           productId: item.productId,
           quantity: item.quantity,
           selectedColor: item.selectedColor,
@@ -336,9 +337,9 @@ export const CheckoutPage: React.FC = () => {
                     <button
                       type="submit"
                       className="mt-4 px-6 py-2 bg-luxury-950 text-white hover:bg-primary-950 transition-colors duration-300"
-                      disabled={validateAddressMutation.isLoading}
+                      disabled={validateAddressMutation.isPending}
                     >
-                      {validateAddressMutation.isLoading ? 'Проверка...' : 'Продолжить'}
+                                              {validateAddressMutation.isPending ? 'Проверка...' : 'Продолжить'}
                     </button>
                   )}
                 </form>
@@ -453,7 +454,7 @@ export const CheckoutPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-luxury-950 mb-4">Ваш заказ</h3>
               
               <div className="space-y-4">
-                {items.map((item) => (
+                {items.map((item: any) => (
                   <div key={`${item.productId}-${item.selectedColor}-${item.selectedSize}`} className="flex items-center space-x-3">
                     <img
                       src={item.image || '/assets/placeholder.jpg'}

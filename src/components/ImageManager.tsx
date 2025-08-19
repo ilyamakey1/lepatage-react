@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, GripVertical, Plus, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, GripVertical } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 interface ImageManagerProps {

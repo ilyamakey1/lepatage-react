@@ -68,7 +68,7 @@ export const authRouter = router({
         };
       } catch (error) {
         console.error('Registration error:', error);
-        throw new Error(error.message || 'Ошибка при регистрации');
+        throw new Error((error as any).message || 'Ошибка при регистрации');
       }
     }),
 
@@ -122,7 +122,7 @@ export const authRouter = router({
         };
       } catch (error) {
         console.error('Login error:', error);
-        throw new Error(error.message || 'Ошибка при входе');
+        throw new Error((error as any).message || 'Ошибка при входе');
       }
     }),
 

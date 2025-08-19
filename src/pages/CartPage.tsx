@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { cn } from '../utils/cn';
 
 export const CartPage: React.FC = () => {
   const { state, updateQuantity, removeItem, clearCart } = useCart();

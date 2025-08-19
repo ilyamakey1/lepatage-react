@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../utils/trpc';
-import { cn } from '../utils/cn';
-import { Settings, Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2 } from 'lucide-react';
+import { Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
   const { state, logout } = useAuth();
@@ -15,8 +14,9 @@ export const AdminPage: React.FC = () => {
     limit: 100
   });
 
-  const { data: orders } = trpc.orders.getAll.useQuery({ limit: 100, offset: 0 });
-  const { data: users } = trpc.auth.getAllUsers.useQuery();
+  // Загружаем заказы и пользователей для админ панели (пока не используются)
+  const { data: _orders } = trpc.orders.getAll.useQuery({ limit: 100, offset: 0 });
+  const { data: _users } = trpc.auth.getAllUsers.useQuery();
 
   const deleteProductMutation = trpc.products.delete.useMutation({
     onSuccess: () => {

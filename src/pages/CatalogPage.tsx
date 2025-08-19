@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { trpc } from '../utils/trpc';
 import { ProductCard } from '../components/ProductCard';
@@ -7,7 +7,7 @@ import { cn } from '../utils/cn';
 
 export const CatalogPage: React.FC = () => {
   const { categorySlug } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+
   
 
 

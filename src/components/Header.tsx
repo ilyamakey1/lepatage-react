@@ -31,7 +31,8 @@ export const Header: React.FC<HeaderProps> = () => {
   // Check if we're on homepage
   const isHomePage = location.pathname === '/';
 
-  const { data: categories } = trpc.categories.getAll.useQuery();
+  // Загружаем категории для навигации (пока не используются)
+  const { data: _categories } = trpc.categories.getAll.useQuery();
   const { data: searchResults, isLoading: isSearchLoading } = trpc.products.search.useQuery(
     { query: searchQuery, limit: 10 },
     { enabled: searchQuery.length >= 2 }

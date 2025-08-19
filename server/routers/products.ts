@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, publicProcedure } from '../trpc.js';
 import { db } from '../../database/db.js';
-import { products, categories, productVariants } from '../../database/schema.js';
+import { products, categories } from '../../database/schema.js';
 import { eq, like, and, or, desc, asc, inArray } from 'drizzle-orm';
 
 export const productsRouter = router({
