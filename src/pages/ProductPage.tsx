@@ -10,7 +10,7 @@ export const ProductPage: React.FC = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
   
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
@@ -38,8 +38,21 @@ export const ProductPage: React.FC = () => {
     
     try {
       // Добавляем товар с выбранными опциями (если есть)
+      const productForCart = {
+        ...product,
+        description: product.description || undefined,
+        shortDescription: product.shortDescription || undefined,
+        salePrice: product.salePrice || undefined,
+        inStock: product.inStock ?? true,
+        featured: product.featured ?? false,
+        isNew: product.isNew ?? false,
+        onSale: product.onSale ?? false,
+        createdAt: product.createdAt || new Date().toISOString(),
+        category: product.category || undefined
+      };
+      
       for (let i = 0; i < quantity; i++) {
-        addItem(product, selectedColor, selectedSize);
+        addItem(productForCart, selectedColor, selectedSize);
       }
       
       // Показываем feedback на 1 секунду
@@ -98,7 +111,7 @@ export const ProductPage: React.FC = () => {
               <>
                 {/* Vertical Scrollable Gallery */}
                 <div className="space-y-4 max-h-[80vh] overflow-y-auto">
-                  {product.images.map((image, index) => (
+                  {product.images.map((image: string, index: number) => (
                     <div
                       key={index}
                       className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg"
@@ -159,7 +172,7 @@ export const ProductPage: React.FC = () => {
               <div className="space-y-3">
                 <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider">ЦВЕТ</h3>
                 <div className="flex space-x-2">
-                  {product.colors.map((color, index) => (
+                  {product.colors.map((color: string, index: number) => (
                     <button
                       key={index}
                       onClick={() => setSelectedColor(color)}
@@ -181,7 +194,7 @@ export const ProductPage: React.FC = () => {
               <div className="space-y-3">
                 <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider">РАЗМЕР</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
+                  {product.sizes.map((size: string) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}

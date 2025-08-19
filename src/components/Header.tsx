@@ -85,11 +85,10 @@ export const Header: React.FC<HeaderProps> = () => {
       ) : 'bg-white/98 backdrop-blur-md minimal-border',
       isScrolled && !isHomePage && 'bg-white'
     )}>
-      <div className="max-w-7xl mx-auto px-8 lg:px-12">
-        <div className="flex items-center justify-between h-16">
-          {/* Left Side - Catalog and Navigation */}
-          <div className="flex items-center space-x-6">
-            <nav className="flex items-center space-x-6">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6">
+        <div className="relative flex items-center h-16">
+          {/* Left Side - Category Navigation */}
+          <nav className="flex items-center space-x-4 mr-auto">
               <Link
                 to="/catalog/corsets"
                 className={cn(
@@ -123,15 +122,10 @@ export const Header: React.FC<HeaderProps> = () => {
               >
                 АКСЕССУАРЫ
               </Link>
-            </nav>
-
-
-
-
-          </div>
+          </nav>
 
           {/* Center - Logo */}
-          <div className="flex-1 flex justify-center">
+          <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="block">
               <span 
                 className={cn(
@@ -148,7 +142,7 @@ export const Header: React.FC<HeaderProps> = () => {
           </div>
 
           {/* Right Side - Search, Cart, Account */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ml-auto">
             <div className="relative" ref={searchRef}>
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
