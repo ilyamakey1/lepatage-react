@@ -92,7 +92,7 @@ export const ProductPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white pt-24">
-      <div className="max-w-6xl mx-auto px-8 lg:px-12 py-8">
+      <div className="w-full mx-auto px-6 lg:px-12 py-8">
         {/* Back Navigation */}
         <div className="mb-8">
           <button

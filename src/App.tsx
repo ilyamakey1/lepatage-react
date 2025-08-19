@@ -13,8 +13,7 @@ import { ProductPage } from './pages/ProductPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
-import { AdminPage } from './pages/AdminPage';
-import { AdminLoginPage } from './pages/AdminLoginPage';
+
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import './index.css';
@@ -83,8 +82,7 @@ function App() {
                     <Route path="/cart" element={<CartPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
-                    <Route path="/admin" element={<AdminPage />} />
-                    <Route path="/admin-login" element={<AdminLoginPage />} />
+
                     <Route path="/account" element={<div className="pt-24 min-h-screen flex items-center justify-center"><h1 className="text-luxury-950 font-sans text-3xl">Account Page - Coming Soon</h1></div>} />
 
                     <Route path="/new" element={<div className="pt-24 min-h-screen flex items-center justify-center"><h1 className="text-luxury-950 font-sans text-3xl">New Products Page - Coming Soon</h1></div>} />

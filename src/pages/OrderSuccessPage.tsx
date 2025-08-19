@@ -99,7 +99,7 @@ export const OrderSuccessPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white pt-24">
-      <div className="max-w-4xl mx-auto px-8 lg:px-12 py-8">
+      <div className="w-full mx-auto px-6 lg:px-12 py-8">
         {/* Success Header */}
         <div className="text-center mb-8">
           <CheckCircle size={64} className="text-green-600 mx-auto mb-4" />

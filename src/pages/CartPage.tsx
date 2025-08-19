@@ -18,7 +18,7 @@ export const CartPage: React.FC = () => {
   if (state.items.length === 0) {
     return (
       <div className="min-h-screen bg-white pt-24 pb-12">
-        <div className="max-w-6xl mx-auto px-8 lg:px-12">
+        <div className="w-full mx-auto px-6 lg:px-12">
           <div className="text-center py-16">
             <h1 className="font-sans text-3xl md:text-4xl font-semibold text-luxury-950 mb-6">
               Корзина пуста
@@ -41,7 +41,7 @@ export const CartPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-12">
-      <div className="max-w-6xl mx-auto px-8 lg:px-12">
+      <div className="w-full mx-auto px-6 lg:px-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-sans text-3xl md:text-4xl font-semibold text-luxury-950">

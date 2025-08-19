@@ -85,10 +85,10 @@ export const Header: React.FC<HeaderProps> = () => {
       ) : 'bg-white/98 backdrop-blur-md minimal-border',
       isScrolled && !isHomePage && 'bg-white'
     )}>
-      <div className="max-w-7xl mx-auto px-4 lg:px-6">
-        <div className="relative flex items-center h-16">
+      <div className="w-full px-6 lg:px-8">
+        <div className="relative flex items-center justify-between h-16">
           {/* Left Side - Category Navigation */}
-          <nav className="flex items-center space-x-4 mr-auto">
+          <nav className="flex items-center space-x-6">
               <Link
                 to="/catalog/corsets"
                 className={cn(
@@ -142,7 +142,7 @@ export const Header: React.FC<HeaderProps> = () => {
           </div>
 
           {/* Right Side - Search, Cart, Account */}
-          <div className="flex items-center space-x-4 ml-auto">
+          <div className="flex items-center space-x-4">
             <div className="relative" ref={searchRef}>
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
