@@ -2,12 +2,13 @@ import { z } from 'zod';
 import { router, publicProcedure } from '../trpc.js';
 import { db } from '../../database/db.js';
 import { products, categories, productVariants } from '../../database/schema.js';
-import { eq, like, and, or, desc, asc } from 'drizzle-orm';
+import { eq, like, and, or, desc, asc, inArray } from 'drizzle-orm';
 
 export const productsRouter = router({
   // Get all products with optional filtering
   getAll: publicProcedure
     .input(z.object({
+      categoryIds: z.array(z.number()).optional(),
       categoryId: z.number().optional(),
       search: z.string().optional(),
       featured: z.boolean().optional(),
@@ -47,7 +48,9 @@ export const productsRouter = router({
       // Apply filters
       const conditions = [];
       
-      if (input.categoryId) {
+      if (input.categoryIds && input.categoryIds.length > 0) {
+        conditions.push(inArray(products.categoryId, input.categoryIds));
+      } else if (input.categoryId) {
         conditions.push(eq(products.categoryId, input.categoryId));
       }
       

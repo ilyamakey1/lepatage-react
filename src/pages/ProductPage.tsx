@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { cn } from '../utils/cn';
 import { useCart } from '../contexts/CartContext';
@@ -13,7 +13,7 @@ export const ProductPage: React.FC = () => {
 
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
-  const [quantity, setQuantity] = useState(1);
+
   const [isAdding, setIsAdding] = useState(false);
 
   const { data: product, isLoading, error } = trpc.products.getBySlug.useQuery(
@@ -51,9 +51,7 @@ export const ProductPage: React.FC = () => {
         category: product.category || undefined
       };
       
-      for (let i = 0; i < quantity; i++) {
-        addItem(productForCart, selectedColor, selectedSize);
-      }
+      addItem(productForCart, selectedColor, selectedSize);
       
       // Показываем feedback на 1 секунду
       setTimeout(() => {
@@ -212,27 +210,7 @@ export const ProductPage: React.FC = () => {
               </div>
             )}
 
-            {/* Quantity */}
-            <div className="space-y-3">
-              <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider">КОЛИЧЕСТВО</h3>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-colors duration-300 flex items-center justify-center"
-                >
-                  -
-                </button>
-                <span className="px-4 py-2 border border-luxury-300 min-w-12 text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-colors duration-300 flex items-center justify-center"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-6 border-t border-luxury-200">
@@ -261,16 +239,7 @@ export const ProductPage: React.FC = () => {
                 )}
               </button>
               
-              <div className="flex space-x-3">
-                <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-all duration-300">
-                  <Heart size={16} />
-                  <span className="font-luxury text-sm tracking-wider">В ИЗБРАННОЕ</span>
-                </button>
-                <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-all duration-300">
-                  <Share2 size={16} />
-                  <span className="font-luxury text-sm tracking-wider">ПОДЕЛИТЬСЯ</span>
-                </button>
-              </div>
+
             </div>
 
             {/* Product Description */}
