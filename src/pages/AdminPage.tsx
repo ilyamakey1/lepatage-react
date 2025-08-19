@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../utils/trpc';
+import { cn } from '../utils/cn';
 import { Settings, Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
