@@ -110,7 +110,7 @@ export const ProductPage: React.FC = () => {
             {product.images && product.images.length > 0 ? (
               <>
                 {/* Vertical Scrollable Gallery */}
-                <div className="space-y-4 max-h-[80vh] overflow-y-auto">
+                <div className="space-y-4 max-h-[80vh] overflow-y-auto scrollbar-hide">
                   {product.images.map((image: string, index: number) => (
                     <div
                       key={index}

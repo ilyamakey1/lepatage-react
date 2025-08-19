@@ -13,6 +13,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = () => {
 
+  const [isBurgerOpen, setIsBurgerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
 
+  const burgerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -48,6 +50,9 @@ export const Header: React.FC<HeaderProps> = () => {
   // Handle outside clicks
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (burgerRef.current && !burgerRef.current.contains(event.target as Node)) {
+        setIsBurgerOpen(false);
+      }
 
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
@@ -66,7 +71,7 @@ export const Header: React.FC<HeaderProps> = () => {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-
+        setIsBurgerOpen(false);
         setIsSearchOpen(false);
         setSearchQuery('');
       }
@@ -87,42 +92,104 @@ export const Header: React.FC<HeaderProps> = () => {
     )}>
       <div className="w-full px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
-          {/* Left Side - Category Navigation */}
-          <nav className="flex items-center space-x-6">
-              <Link
-                to="/catalog/corsets"
-                className={cn(
-                  "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
-                  isHomePage && !isScrolled 
-                    ? "text-white hover:text-white/80" 
-                    : "text-luxury-950 hover:text-primary-950"
-                )}
-              >
-                КОРСЕТЫ
-              </Link>
-              <Link
-                to="/catalog/bags"
-                className={cn(
-                  "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
-                  isHomePage && !isScrolled 
-                    ? "text-white hover:text-white/80" 
-                    : "text-luxury-950 hover:text-primary-950"
-                )}
-              >
-                СУМКИ
-              </Link>
-              <Link
-                to="/catalog/accessories"
-                className={cn(
-                  "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
-                  isHomePage && !isScrolled 
-                    ? "text-white hover:text-white/80" 
-                    : "text-luxury-950 hover:text-primary-950"
-                )}
-              >
-                АКСЕССУАРЫ
-              </Link>
-          </nav>
+                    {/* Left Side - Burger Menu */}
+          <div className="relative" ref={burgerRef}>
+            <button
+              onClick={() => setIsBurgerOpen(!isBurgerOpen)}
+              className={cn(
+                "flex flex-col space-y-1 p-2 transition-all duration-300",
+                isHomePage && !isScrolled 
+                  ? "text-white hover:text-white/80" 
+                  : "text-luxury-950 hover:text-primary-950"
+              )}
+            >
+              <span className={cn(
+                "w-6 h-0.5 transition-all duration-300",
+                isHomePage && !isScrolled 
+                  ? "bg-white" 
+                  : "bg-luxury-950"
+              )}></span>
+              <span className={cn(
+                "w-6 h-0.5 transition-all duration-300",
+                isHomePage && !isScrolled 
+                  ? "bg-white" 
+                  : "bg-luxury-950"
+              )}></span>
+              <span className={cn(
+                "w-6 h-0.5 transition-all duration-300",
+                isHomePage && !isScrolled 
+                  ? "bg-white" 
+                  : "bg-luxury-950"
+              )}></span>
+            </button>
+
+            {/* Burger Dropdown Menu */}
+            {isBurgerOpen && (
+              <div className="absolute top-full left-0 mt-2 w-64 glass-effect minimal-border rounded-lg overflow-hidden animate-fade-in-up z-50">
+                <div className="p-4">
+                  <h3 className="font-sans text-sm font-medium text-luxury-950 mb-3 tracking-wide">
+                    Каталог
+                  </h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <Link
+                        to="/catalog/corsets"
+                        className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-sm font-luxury"
+                        onClick={() => setIsBurgerOpen(false)}
+                      >
+                        Корсеты
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/catalog/bags"
+                        className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-sm font-luxury"
+                        onClick={() => setIsBurgerOpen(false)}
+                      >
+                        Сумки
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/catalog/accessories"
+                        className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-sm font-luxury"
+                        onClick={() => setIsBurgerOpen(false)}
+                      >
+                        Аксессуары
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/catalog/belts"
+                        className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-sm font-luxury"
+                        onClick={() => setIsBurgerOpen(false)}
+                      >
+                        Пояса
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/catalog/cases"
+                        className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-sm font-luxury"
+                        onClick={() => setIsBurgerOpen(false)}
+                      >
+                        Чехлы
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/catalog/jewelry"
+                        className="block text-luxury-700 hover:text-primary-950 transition-all duration-300 text-sm font-luxury"
+                        onClick={() => setIsBurgerOpen(false)}
+                      >
+                        Украшения
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Center - Logo */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
