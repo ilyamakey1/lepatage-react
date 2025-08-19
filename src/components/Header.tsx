@@ -71,7 +71,8 @@ export const Header: React.FC<HeaderProps> = () => {
   return (
     <>
     <header className={cn(
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-transparent'
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
+      isHomePage ? 'bg-transparent' : 'bg-white/95 backdrop-blur-sm'
     )}>
       <div className="w-full px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-16">
@@ -79,19 +80,28 @@ export const Header: React.FC<HeaderProps> = () => {
           <nav className="flex items-center space-x-6">
             <Link
               to="/catalog/corsets"
-              className="font-medium text-sm tracking-wider font-luxury transition-all duration-300 text-white hover:text-white/80"
+              className={cn(
+                "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
+                isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+              )}
             >
               КОРСЕТЫ
             </Link>
             <Link
               to="/catalog/bags"
-              className="font-medium text-sm tracking-wider font-luxury transition-all duration-300 text-white hover:text-white/80"
+              className={cn(
+                "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
+                isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+              )}
             >
               СУМКИ
             </Link>
             <Link
               to="/catalog/accessories"
-              className="font-medium text-sm tracking-wider font-luxury transition-all duration-300 text-white hover:text-white/80"
+              className={cn(
+                "font-medium text-sm tracking-wider font-luxury transition-all duration-300",
+                isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+              )}
             >
               АКСЕССУАРЫ
             </Link>
@@ -101,7 +111,10 @@ export const Header: React.FC<HeaderProps> = () => {
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <Link to="/" className="block">
               <span 
-                className="font-serif text-xl font-light tracking-wide transition-all duration-300 hover:opacity-80 text-white"
+                className={cn(
+                  "font-serif text-xl font-light tracking-wide transition-all duration-300 hover:opacity-80",
+                  isHomePage ? "text-white" : "text-luxury-950"
+                )}
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 L'ÉPATAGE
@@ -114,7 +127,10 @@ export const Header: React.FC<HeaderProps> = () => {
             <div className="relative" ref={searchRef}>
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 transition-all duration-300 text-white hover:text-white/80"
+                className={cn(
+                  "p-2 transition-all duration-300",
+                  isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+                )}
               >
                 <Search size={16} />
               </button>
@@ -196,7 +212,10 @@ export const Header: React.FC<HeaderProps> = () => {
 
             <Link 
               to="/cart" 
-              className="relative p-2 transition-all duration-300 text-white hover:text-white/80"
+              className={cn(
+                "relative p-2 transition-all duration-300",
+                isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+              )}
             >
               <ShoppingBag size={16} />
               {cartState.itemCount > 0 && (
@@ -210,7 +229,10 @@ export const Header: React.FC<HeaderProps> = () => {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="p-2 transition-all duration-300 text-white hover:text-white/80"
+                  className={cn(
+                    "p-2 transition-all duration-300",
+                    isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+                  )}
                 >
                   <User size={16} />
                 </button>
@@ -264,7 +286,10 @@ export const Header: React.FC<HeaderProps> = () => {
             ) : (
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="p-2 transition-all duration-300 text-white hover:text-white/80"
+                className={cn(
+                  "p-2 transition-all duration-300",
+                  isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+                )}
               >
                 <User size={16} />
               </button>
