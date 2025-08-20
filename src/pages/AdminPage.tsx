@@ -2,13 +2,33 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../utils/trpc';
-import { Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2 } from 'lucide-react';
+import { Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2, X } from 'lucide-react';
+import { ImageManager } from '../components/ImageManager';
 
 export const AdminPage: React.FC = () => {
   const { state, logout } = useAuth();
   const { user } = state;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('products');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [productForm, setProductForm] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    shortDescription: '',
+    price: '',
+    salePrice: '',
+    images: [] as string[],
+    colors: [] as string[],
+    sizes: [] as string[],
+    inStock: true,
+    featured: false,
+    isNew: false,
+    onSale: false,
+    categoryId: ''
+  });
 
   const { data: products, refetch: refetchProducts } = trpc.products.getAll.useQuery({
     limit: 100
@@ -17,12 +37,49 @@ export const AdminPage: React.FC = () => {
   // Загружаем заказы и пользователей для админ панели (пока не используются)
   const { data: _orders } = trpc.orders.getAll.useQuery({ limit: 100, offset: 0 });
   const { data: _users } = trpc.auth.getAllUsers.useQuery();
+  const { data: categories } = trpc.categories.getAll.useQuery();
 
   const deleteProductMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
       refetchProducts();
     },
   });
+
+  const createProductMutation = trpc.products.create.useMutation({
+    onSuccess: () => {
+      refetchProducts();
+      setIsCreating(false);
+      resetForm();
+    },
+  });
+
+  const updateProductMutation = trpc.products.update.useMutation({
+    onSuccess: () => {
+      refetchProducts();
+      setIsEditing(false);
+      setEditingProduct(null);
+      resetForm();
+    },
+  });
+
+  const resetForm = () => {
+    setProductForm({
+      name: '',
+      slug: '',
+      description: '',
+      shortDescription: '',
+      price: '',
+      salePrice: '',
+      images: [],
+      colors: [],
+      sizes: [],
+      inStock: true,
+      featured: false,
+      isNew: false,
+      onSale: false,
+      categoryId: ''
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -32,6 +89,57 @@ export const AdminPage: React.FC = () => {
   const handleDeleteProduct = (productId: number) => {
     if (window.confirm('Вы уверены, что хотите удалить этот товар?')) {
       deleteProductMutation.mutate({ id: productId });
+    }
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setProductForm({
+      name: product.name,
+      slug: product.slug,
+      description: product.description || '',
+      shortDescription: product.shortDescription || '',
+      price: product.price.toString(),
+      salePrice: product.salePrice ? product.salePrice.toString() : '',
+      images: product.images || [],
+      colors: product.colors || [],
+      sizes: product.sizes || [],
+      inStock: product.inStock,
+      featured: product.featured,
+      isNew: product.isNew,
+      onSale: product.onSale,
+      categoryId: product.categoryId?.toString() || ''
+    });
+    setIsEditing(true);
+  };
+
+  const handleCreateProduct = () => {
+    setIsCreating(true);
+    resetForm();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!productForm.categoryId) {
+      alert('Пожалуйста, выберите категорию');
+      return;
+    }
+
+    const productData = {
+      ...productForm,
+      price: parseFloat(productForm.price),
+      salePrice: productForm.salePrice ? parseFloat(productForm.salePrice) : undefined,
+      categoryId: parseInt(productForm.categoryId)
+    };
+
+    if (isEditing && editingProduct) {
+      updateProductMutation.mutate({
+        id: editingProduct.id,
+        ...productData
+      });
+    } else {
+      createProductMutation.mutate(productData);
     }
   };
 
@@ -114,7 +222,10 @@ export const AdminPage: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-luxury-950">Управление товарами</h2>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-primary-950 text-white hover:bg-primary-900 transition-colors duration-300 rounded">
+                <button 
+                  onClick={handleCreateProduct}
+                  className="flex items-center space-x-2 px-4 py-2 bg-primary-950 text-white hover:bg-primary-900 transition-colors duration-300 rounded"
+                >
                   <Plus size={16} />
                   <span>Добавить товар</span>
                 </button>
@@ -174,7 +285,10 @@ export const AdminPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button className="text-primary-600 hover:text-primary-900">
+                            <button 
+                              onClick={() => handleEditProduct(product)}
+                              className="text-primary-600 hover:text-primary-900"
+                            >
                               <Edit size={16} />
                             </button>
                             <button 
@@ -209,6 +323,234 @@ export const AdminPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Product Form Modal */}
+        {(isCreating || isEditing) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-luxury-950">
+                  {isEditing ? 'Редактировать товар' : 'Создать новый товар'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsCreating(false);
+                    setIsEditing(false);
+                    setEditingProduct(null);
+                    resetForm();
+                  }}
+                  className="text-luxury-500 hover:text-luxury-700"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Название товара *
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.name}
+                      onChange={(e) => setProductForm({...productForm, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Slug *
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.slug}
+                      onChange={(e) => setProductForm({...productForm, slug: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Категория *
+                    </label>
+                    <select
+                      value={productForm.categoryId}
+                      onChange={(e) => setProductForm({...productForm, categoryId: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      required
+                    >
+                      <option value="">Выберите категорию</option>
+                      {categories?.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Цена *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) => setProductForm({...productForm, price: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Цена со скидкой
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.salePrice}
+                      onChange={(e) => setProductForm({...productForm, salePrice: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Краткое описание
+                    </label>
+                    <textarea
+                      value={productForm.shortDescription}
+                      onChange={(e) => setProductForm({...productForm, shortDescription: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Полное описание
+                    </label>
+                    <textarea
+                      value={productForm.description}
+                      onChange={(e) => setProductForm({...productForm, description: e.target.value})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Изображения
+                    </label>
+                    <ImageManager
+                      images={productForm.images}
+                      onImagesChange={(images) => setProductForm({...productForm, images})}
+                      maxImages={10}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Цвета (через запятую)
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.colors.join(', ')}
+                      onChange={(e) => setProductForm({...productForm, colors: e.target.value.split(',').map(c => c.trim()).filter(c => c)})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      placeholder="#000000, #ffffff"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-luxury-950 mb-2">
+                      Размеры (через запятую)
+                    </label>
+                    <input
+                      type="text"
+                      value={productForm.sizes.join(', ')}
+                      onChange={(e) => setProductForm({...productForm, sizes: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                      className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                      placeholder="XS, S, M, L, XL"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-6">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={productForm.inStock}
+                      onChange={(e) => setProductForm({...productForm, inStock: e.target.checked})}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-luxury-950">В наличии</span>
+                  </label>
+
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={productForm.featured}
+                      onChange={(e) => setProductForm({...productForm, featured: e.target.checked})}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-luxury-950">Рекомендуемый</span>
+                  </label>
+
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={productForm.isNew}
+                      onChange={(e) => setProductForm({...productForm, isNew: e.target.checked})}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-luxury-950">Новинка</span>
+                  </label>
+
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={productForm.onSale}
+                      onChange={(e) => setProductForm({...productForm, onSale: e.target.checked})}
+                      className="mr-2"
+                    />
+                    <span className="text-sm text-luxury-950">Со скидкой</span>
+                  </label>
+                </div>
+
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCreating(false);
+                      setIsEditing(false);
+                      setEditingProduct(null);
+                      resetForm();
+                    }}
+                    className="px-6 py-2 border border-luxury-300 text-luxury-700 hover:bg-luxury-50 transition-colors duration-300 rounded"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createProductMutation.isPending || updateProductMutation.isPending}
+                    className="px-6 py-2 bg-primary-950 text-white hover:bg-primary-900 transition-colors duration-300 rounded disabled:opacity-50"
+                  >
+                    {createProductMutation.isPending || updateProductMutation.isPending 
+                      ? 'Сохранение...' 
+                      : (isEditing ? 'Обновить' : 'Создать')
+                    }
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
