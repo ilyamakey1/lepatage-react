@@ -80,17 +80,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <>
             <button
               onClick={handlePrevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white border border-luxury-300 flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center transition-all duration-200"
               aria-label="Предыдущее изображение"
             >
-              <ChevronLeft size={16} className="text-luxury-950" />
+              <ChevronLeft size={16} className="text-white drop-shadow-lg" />
             </button>
             <button
               onClick={handleNextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white border border-luxury-300 flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center transition-all duration-200"
               aria-label="Следующее изображение"
             >
-              <ChevronRight size={16} className="text-luxury-950" />
+              <ChevronRight size={16} className="text-white drop-shadow-lg" />
             </button>
             
             {/* Image Dots Indicator */}
