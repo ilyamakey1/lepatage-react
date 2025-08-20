@@ -34,10 +34,11 @@ export const AdminPage: React.FC = () => {
     limit: 100
   });
 
-  // Загружаем заказы и пользователей для админ панели (пока не используются)
-  const { data: _orders } = trpc.orders.getAll.useQuery({ limit: 100, offset: 0 });
-  const { data: _users } = trpc.auth.getAllUsers.useQuery();
+  // Загружаем заказы и пользователей для админ панели
+  const { data: orders } = trpc.orders.getAll.useQuery({ limit: 100, offset: 0 });
+  const { data: users } = trpc.auth.getAllUsers.useQuery();
   const { data: categories } = trpc.categories.getAll.useQuery();
+  const { data: newsletterSubscriptions } = trpc.newsletter.getAllSubscribers.useQuery();
 
   const deleteProductMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
@@ -213,6 +214,17 @@ export const AdminPage: React.FC = () => {
             <Users size={16} />
             <span>Пользователи</span>
           </button>
+          <button
+            onClick={() => setActiveTab('newsletter')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
+              activeTab === 'newsletter'
+                ? 'bg-white text-primary-950 shadow-sm'
+                : 'text-luxury-600 hover:text-luxury-950'
+            }`}
+          >
+            <Package size={16} />
+            <span>Подписчики</span>
+          </button>
         </div>
 
         {/* Content */}
@@ -311,7 +323,68 @@ export const AdminPage: React.FC = () => {
           {activeTab === 'orders' && (
             <div className="p-6">
               <h2 className="text-xl font-semibold text-luxury-950 mb-6">Заказы</h2>
-              <div className="text-luxury-600">Функционал управления заказами в разработке</div>
+              {orders && orders.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-luxury-200">
+                    <thead className="bg-luxury-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Номер заказа
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Клиент
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Сумма
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Статус
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Дата
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-luxury-200">
+                      {orders.map((order) => (
+                        <tr key={order.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-luxury-950">
+                            {order.orderNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            <div>
+                              <div className="font-medium">{order.firstName} {order.lastName}</div>
+                              <div className="text-luxury-500">{order.email}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            {order.total} {order.currency}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'confirmed' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {order.status === 'pending' ? 'Обрабатывается' :
+                               order.status === 'confirmed' ? 'Подтвержден' :
+                               order.status === 'shipped' ? 'Отправлен' :
+                               order.status === 'delivered' ? 'Доставлен' :
+                               order.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
+                            {new Date(order.createdAt || '').toLocaleDateString('ru-RU')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-luxury-600">Заказов пока нет</div>
+              )}
             </div>
           )}
 
@@ -319,7 +392,117 @@ export const AdminPage: React.FC = () => {
           {activeTab === 'users' && (
             <div className="p-6">
               <h2 className="text-xl font-semibold text-luxury-950 mb-6">Пользователи</h2>
-              <div className="text-luxury-600">Функционал управления пользователями в разработке</div>
+              {users && users.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-luxury-200">
+                    <thead className="bg-luxury-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Пользователь
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Email
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Телефон
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Роль
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Дата регистрации
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-luxury-200">
+                      {users.map((user) => (
+                        <tr key={user.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-luxury-950">
+                            {user.firstName} {user.lastName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            {user.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
+                            {user.phone || '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              user.isAdmin ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            }`}>
+                              {user.isAdmin ? 'Администратор' : 'Пользователь'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
+                            {new Date(user.createdAt || '').toLocaleDateString('ru-RU')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-luxury-600">Пользователей пока нет</div>
+              )}
+            </div>
+          )}
+
+          {/* Newsletter Subscribers Tab */}
+          {activeTab === 'newsletter' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-luxury-950 mb-6">Подписчики на рассылку</h2>
+              {newsletterSubscriptions && newsletterSubscriptions.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-luxury-200">
+                    <thead className="bg-luxury-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Имя
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Email
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Статус
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Источник
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Дата подписки
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-luxury-200">
+                      {newsletterSubscriptions.map((subscriber) => (
+                        <tr key={subscriber.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-luxury-950">
+                            {subscriber.firstName || '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            {subscriber.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              subscriber.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {subscriber.isActive ? 'Активен' : 'Неактивен'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
+                            {subscriber.source || 'website'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
+                            {new Date(subscriber.createdAt || '').toLocaleDateString('ru-RU')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-luxury-600">Подписчиков пока нет</div>
+              )}
             </div>
           )}
         </div>

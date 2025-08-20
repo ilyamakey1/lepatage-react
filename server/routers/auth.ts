@@ -183,4 +183,46 @@ export const authRouter = router({
         };
       }
     }),
+
+  // Update user profile
+  updateUser: publicProcedure
+    .input(z.object({
+      defaultAddress: z.string().optional(),
+      phone: z.string().optional(),
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        // For now, we'll use a simple approach without proper auth middleware
+        // In production, you should implement proper JWT verification
+        const token = input.token; // This should come from context in production
+        
+        if (!token) {
+          throw new Error('Требуется авторизация');
+        }
+
+        // Verify token and get user ID
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        const userId = decoded.userId;
+
+        // Update user
+        const updatedUser = await db.update(users)
+          .set({
+            ...input,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(users.id, userId))
+          .returning();
+
+        return {
+          success: true,
+          message: 'Профиль обновлен',
+          user: updatedUser[0],
+        };
+      } catch (error) {
+        console.error('Update user error:', error);
+        throw new Error((error as any).message || 'Ошибка при обновлении профиля');
+      }
+    }),
 });

@@ -51,6 +51,7 @@ export const CheckoutPage: React.FC = () => {
   // tRPC mutations
   const createOrderMutation = trpc.orders.create.useMutation();
   const validateAddressMutation = trpc.orders.validateAddress.useMutation();
+  const updateUserMutation = trpc.auth.updateUser.useMutation();
 
   // If cart is empty, redirect
   if (items.length === 0) {
@@ -130,6 +131,20 @@ export const CheckoutPage: React.FC = () => {
       const result = await createOrderMutation.mutateAsync(orderData);
       
       if (result.success) {
+        // Try to save address for registered users
+        try {
+          const token = localStorage.getItem('authToken');
+          if (token) {
+            await updateUserMutation.mutateAsync({
+              token,
+              defaultAddress: JSON.stringify(shippingAddress)
+            });
+          }
+        } catch (error) {
+          // Ignore errors for address saving
+          console.log('Could not save address for user');
+        }
+        
         // Clear cart
         clearCart();
         

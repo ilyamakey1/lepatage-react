@@ -5,14 +5,37 @@ import {
   productVariants, 
   collections, 
   collectionProducts,
-  users
+  users,
+  newsletterSubscriptions
 } from './schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 async function seedDatabase() {
   console.log('Seeding database...');
 
   try {
+    // Add new columns if they don't exist (simple migration)
+    try {
+      await db.run(sql`ALTER TABLE users ADD COLUMN default_address TEXT`);
+      console.log('Added default_address column to users table');
+    } catch (e) {
+      // Column already exists
+    }
+
+    try {
+      await db.run(sql`ALTER TABLE newsletter_subscriptions ADD COLUMN first_name TEXT`);
+      console.log('Added first_name column to newsletter_subscriptions table');
+    } catch (e) {
+      // Column already exists
+    }
+
+    try {
+      await db.run(sql`ALTER TABLE newsletter_subscriptions ADD COLUMN source TEXT`);
+      console.log('Added source column to newsletter_subscriptions table');
+    } catch (e) {
+      // Column already exists
+    }
+
     // Insert categories
     const categoryData = [
       { 
@@ -41,6 +64,7 @@ async function seedDatabase() {
     await db.delete(productVariants);
     await db.delete(products);
     await db.delete(categories);
+    await db.delete(newsletterSubscriptions);
 
     const insertedCategories = await db.insert(categories).values(categoryData).returning();
     console.log('Categories inserted:', insertedCategories.length);
@@ -331,6 +355,25 @@ async function seedDatabase() {
     } else {
       console.log('Admin user already exists:', existingAdmin[0].email);
     }
+
+    // Insert newsletter subscribers
+    const newsletterData = [
+      {
+        email: 'test@example.com',
+        firstName: 'Тестовый',
+        isActive: true,
+        source: 'admin'
+      },
+      {
+        email: 'demo@lepatage.by',
+        firstName: 'Демо',
+        isActive: true,
+        source: 'website'
+      }
+    ];
+
+    await db.insert(newsletterSubscriptions).values(newsletterData);
+    console.log('Newsletter subscribers inserted:', newsletterData.length);
 
     console.log('Database seeded successfully!');
   } catch (error) {
