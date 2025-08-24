@@ -8,9 +8,6 @@ import { cn } from '../utils/cn';
 export const CatalogPage: React.FC = () => {
   const { categorySlug } = useParams();
 
-  
-
-
   const { data: categories } = trpc.categories.getAll.useQuery();
   const { data: category } = trpc.categories.getBySlug.useQuery(
     { slug: categorySlug! },
@@ -30,42 +27,20 @@ export const CatalogPage: React.FC = () => {
     limit: 50,
   });
 
-
-
   return (
     <div className="min-h-screen bg-white text-luxury-950 pt-24">
       <div className="w-full mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12">
-          <div className="flex items-center space-x-2 text-sm text-luxury-600 mb-4 font-luxury">
-            <span>ГЛАВНАЯ</span>
-            <span>/</span>
-            <span>КАТАЛОГ</span>
-            {category && (
-              <>
-                <span>/</span>
-                <span className="text-primary-600">{category.name.toUpperCase()}</span>
-              </>
-            )}
-          </div>
-          
           <h1 className="font-sans text-4xl md:text-5xl font-semibold text-luxury-950 mb-4 tracking-wide">
             {category ? category.name : 'Каталог товаров'}
           </h1>
-          
-          {category?.description && (
-            <p className="text-xl text-luxury-700 max-w-3xl font-light leading-relaxed">
-              {category.description}
-            </p>
-          )}
         </div>
 
         {/* Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-12 space-y-6 lg:space-y-0">
           {/* Left Controls */}
           <div className="flex items-center space-x-6">
-
-
             {/* Category Navigation */}
             <div className="hidden md:flex items-center space-x-4">
               {categories?.map((cat) => (
@@ -90,12 +65,7 @@ export const CatalogPage: React.FC = () => {
               ))}
             </div>
           </div>
-
-
-
         </div>
-
-
 
         {/* Products Grid */}
         {isLoading ? (
@@ -119,7 +89,6 @@ export const CatalogPage: React.FC = () => {
                   createdAt: product.createdAt || new Date().toISOString(),
                   category: product.category || undefined
                 }}
-
               />
             ))}
           </div>

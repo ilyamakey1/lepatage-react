@@ -32,19 +32,19 @@
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 0px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-luxury-100;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary-400 rounded-full;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary-500;
+    @apply bg-transparent;
   }
 
   /* Form elements */

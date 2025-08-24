@@ -1,14 +1,41 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { cn } from '../utils/cn';
 import { useCart } from '../contexts/CartContext';
+import { useFavorites } from '../contexts/FavoritesContext';
+
+// Интерфейс для товара из базы данных
+interface ProductFromDB {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  shortDescription: string | null;
+  price: number;
+  salePrice: number | null;
+  images: string[];
+  colors: string[];
+  sizes: string[];
+  inStock: boolean;
+  featured: boolean;
+  isNew: boolean;
+  onSale: boolean;
+  tags: string[];
+  createdAt: string;
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+  } | null;
+}
 
 export const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { isInFavorites, toggleFavorite } = useFavorites();
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -19,7 +46,7 @@ export const ProductPage: React.FC = () => {
   const { data: product, isLoading, error } = trpc.products.getBySlug.useQuery(
     { slug: slug! },
     { enabled: !!slug }
-  );
+  ) as { data: ProductFromDB | undefined; isLoading: boolean; error: any };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -29,7 +56,20 @@ export const ProductPage: React.FC = () => {
     }).format(price);
   };
 
-
+  // Функция для определения текущего изображения при скролле
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!product?.images) return;
+    
+    const container = e.currentTarget;
+    const scrollTop = container.scrollTop;
+    const containerHeight = container.clientHeight;
+    
+    // Вычисляем индекс текущего изображения на основе позиции скролла
+    const newIndex = Math.round(scrollTop / containerHeight);
+    if (newIndex !== currentImageIndex && newIndex >= 0 && newIndex < product.images.length) {
+      setCurrentImageIndex(newIndex);
+    }
+  };
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -37,9 +77,30 @@ export const ProductPage: React.FC = () => {
     setIsAdding(true);
     
     try {
+      // Преобразуем типы из базы данных в типы для корзины
+      const cartProduct = {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        description: product.description || undefined,
+        shortDescription: product.shortDescription || undefined,
+        price: product.price,
+        salePrice: product.salePrice || undefined,
+        images: product.images,
+        colors: product.colors,
+        sizes: product.sizes,
+        inStock: product.inStock,
+        featured: product.featured,
+        isNew: product.isNew,
+        onSale: product.onSale,
+        tags: product.tags,
+        createdAt: product.createdAt,
+        category: product.category || undefined
+      };
+      
       // Добавляем товар с выбранными опциями (если есть)
       for (let i = 0; i < quantity; i++) {
-        addItem(product, selectedColor, selectedSize);
+        addItem(cartProduct, selectedColor, selectedSize);
       }
       
       // Показываем feedback на 1 секунду
@@ -49,6 +110,45 @@ export const ProductPage: React.FC = () => {
     } catch (error) {
       console.error('Error adding product to cart:', error);
       setIsAdding(false);
+    }
+  };
+
+  // Адаптер для преобразования типов для избранного
+  const getProductForFavorites = () => {
+    if (!product) return null;
+    
+    return {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description || undefined,
+      shortDescription: product.shortDescription || undefined,
+      price: product.price,
+      salePrice: product.salePrice || undefined,
+      images: product.images,
+      colors: product.colors,
+      sizes: product.sizes,
+      inStock: product.inStock,
+      featured: product.featured,
+      isNew: product.isNew,
+      onSale: product.onSale,
+      tags: product.tags,
+      createdAt: product.createdAt,
+      category: product.category || undefined
+    };
+  };
+
+  const nextImage = () => {
+    if (product?.images) {
+      setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (product?.images) {
+      setCurrentImageIndex((prev) => 
+        prev === 0 ? product.images.length - 1 : prev - 1
+      );
     }
   };
 
@@ -78,46 +178,38 @@ export const ProductPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24">
-      <div className="max-w-6xl mx-auto px-8 lg:px-12 py-8">
+    <div className="min-h-screen bg-transparent">
+      <div className="w-full min-h-screen">
         {/* Back Navigation */}
-        <div className="mb-8">
+        <div className="absolute top-24 left-8 z-10">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center space-x-2 text-luxury-600 hover:text-primary-950 transition-colors duration-300 text-sm font-luxury"
+            className="inline-flex items-center space-x-2 text-luxury-600 hover:text-primary-950 transition-colors duration-300 text-sm font-luxury bg-white/80 px-3 py-2 rounded"
           >
             <ArrowLeft size={16} />
             <span>НАЗАД</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Images - With Dots Navigation */}
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+          {/* Product Images - Scrollable */}
+          <div className="relative overflow-y-auto" onScroll={handleScroll}>
             {product.images && product.images.length > 0 ? (
-              <>
-                {/* Main Image */}
-                <div className="relative w-full aspect-square overflow-hidden bg-luxury-50 rounded-lg">
-                  <img
-                    src={product.images[currentImageIndex]}
-                    alt={`${product.name} ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover transition-opacity duration-300"
-                  />
-                  
-                  {/* Touch/Swipe Area for mobile */}
-                  <div 
-                    className="absolute inset-0 cursor-pointer"
-                    onClick={() => {
-                      const nextIndex = (currentImageIndex + 1) % product.images.length;
-                      setCurrentImageIndex(nextIndex);
-                    }}
-                  />
-                </div>
+              <div className="space-y-0">
+                {product.images.map((image: string, index: number) => (
+                  <div key={index} className="w-full h-screen overflow-hidden">
+                    <img
+                      src={image}
+                      alt={`${product.name} ${index + 1}`}
+                      className="w-full h-full object-cover transition-opacity duration-300"
+                    />
+                  </div>
+                ))}
 
-                {/* Dots Navigation */}
+                {/* Vertical Dots Navigation */}
                 {product.images.length > 1 && (
-                  <div className="flex justify-center space-x-2 py-4">
-                    {product.images.map((_, index) => (
+                  <div className="fixed right-8 top-1/2 transform -translate-y-1/2 flex flex-col space-y-2 z-20">
+                    {product.images.map((_: string, index: number) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
@@ -132,65 +224,47 @@ export const ProductPage: React.FC = () => {
                     ))}
                   </div>
                 )}
-
-                {/* Thumbnail Grid (optional, smaller) */}
-                {product.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {product.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={cn(
-                          "aspect-square overflow-hidden rounded transition-all duration-300",
-                          index === currentImageIndex
-                            ? "ring-2 ring-primary-950 ring-offset-2"
-                            : "opacity-70 hover:opacity-100"
-                        )}
-                      >
-                        <img
-                          src={image}
-                          alt={`${product.name} ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
+              </div>
             ) : (
-              <div className="w-full h-96 flex items-center justify-center bg-luxury-50 rounded-lg">
+              <div className="w-full h-screen flex items-center justify-center bg-transparent">
                 <span className="text-luxury-500">Нет изображений</span>
               </div>
             )}
           </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            {/* Product Title and Category */}
-            <div>
-              {product.category && (
-                <p className="text-primary-950 text-sm font-medium font-luxury tracking-wider uppercase mb-2">
-                  {product.category.name}
-                </p>
-              )}
-              <h1 className="text-3xl md:text-4xl font-bold text-luxury-950 mb-4">
-                {product.name}
-              </h1>
-              {product.shortDescription && (
-                <p className="text-luxury-700 leading-relaxed">
-                  {product.shortDescription}
-                </p>
-              )}
+          {/* Product Info - Fixed Position */}
+          <div className="sticky top-0 h-screen flex flex-col justify-center p-12 space-y-8 bg-transparent overflow-y-auto">
+            {/* Product Title with Heart Icon */}
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h1 className="text-4xl md:text-5xl font-bold text-luxury-950 mb-6">
+                  {product.name}
+                </h1>
+              </div>
+              <button 
+                onClick={() => {
+                  const productForFavorites = getProductForFavorites();
+                  if (productForFavorites) {
+                    toggleFavorite(productForFavorites);
+                  }
+                }}
+                className={cn(
+                  "p-3 text-luxury-600 hover:text-primary-950 transition-colors duration-300",
+                  isInFavorites(product.id) ? "text-primary-950" : "text-luxury-600"
+                )}
+              >
+                <Heart size={24} fill={isInFavorites(product.id) ? "currentColor" : "none"} />
+              </button>
             </div>
 
             {/* Price */}
-            <div className="border-t border-luxury-200 pt-6">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl font-bold text-luxury-950">
+            <div className="border-t border-luxury-200 pt-8">
+              <div className="flex items-center space-x-4">
+                <span className="text-3xl font-bold text-luxury-950">
                   {formatPrice(product.salePrice || product.price)}
                 </span>
                 {product.salePrice && product.salePrice < product.price && (
-                  <span className="text-lg text-luxury-500 line-through">
+                  <span className="text-xl text-luxury-500 line-through">
                     {formatPrice(product.price)}
                   </span>
                 )}
@@ -199,18 +273,18 @@ export const ProductPage: React.FC = () => {
 
             {/* Colors */}
             {product.colors && product.colors.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider">ЦВЕТ</h3>
-                <div className="flex space-x-2">
-                  {product.colors.map((color, index) => (
+                <div className="flex space-x-3">
+                  {product.colors.map((color: string, index: number) => (
                     <button
                       key={index}
                       onClick={() => setSelectedColor(color)}
                       className={cn(
-                        'w-8 h-8 border-2 transition-all duration-300',
+                        'w-10 h-10 border-2 transition-all duration-300',
                         selectedColor === color
                           ? 'border-primary-950 scale-110'
-                          : 'border-luxury-300 hover:border-luxury-500'
+                          : 'border-luxury-300 hover:border-primary-500'
                       )}
                       style={{ backgroundColor: color }}
                     />
@@ -221,15 +295,15 @@ export const ProductPage: React.FC = () => {
 
             {/* Sizes */}
             {product.sizes && product.sizes.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider">РАЗМЕР</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
+                <div className="flex flex-wrap gap-3">
+                  {product.sizes.map((size: string) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
                       className={cn(
-                        'px-4 py-2 border text-sm font-medium transition-all duration-300 font-luxury tracking-wider',
+                        'px-6 py-3 border text-sm font-medium transition-all duration-300 font-luxury tracking-wider',
                         selectedSize === size
                           ? 'border-primary-950 bg-primary-950 text-white'
                           : 'border-luxury-300 text-luxury-950 hover:border-primary-950'
@@ -242,34 +316,12 @@ export const ProductPage: React.FC = () => {
               </div>
             )}
 
-            {/* Quantity */}
-            <div className="space-y-3">
-              <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider">КОЛИЧЕСТВО</h3>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-colors duration-300 flex items-center justify-center"
-                >
-                  -
-                </button>
-                <span className="px-4 py-2 border border-luxury-300 min-w-12 text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-colors duration-300 flex items-center justify-center"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3 pt-6 border-t border-luxury-200">
+            {/* Action Button - Only Add to Cart */}
+            <div className="pt-8 border-t border-luxury-200">
               <button
                 onClick={handleAddToCart}
                 className={cn(
-                  "w-full flex items-center justify-center space-x-2 px-6 py-4 font-medium transition-all duration-300 font-luxury tracking-wider",
+                  "w-full flex items-center justify-center space-x-3 px-8 py-5 font-medium transition-all duration-300 font-luxury tracking-wider text-lg",
                   !product.inStock 
                     ? "bg-gray-400 cursor-not-allowed text-white"
                     : isAdding 
@@ -280,36 +332,17 @@ export const ProductPage: React.FC = () => {
               >
                 {isAdding ? (
                   <>
-                    <span className="text-lg">✓</span>
+                    <span className="text-xl">✓</span>
                     <span>ДОБАВЛЕНО!</span>
                   </>
                 ) : (
                   <>
-                    <ShoppingCart size={18} />
+                    <ShoppingCart size={20} />
                     <span>{product.inStock ? 'ДОБАВИТЬ В КОРЗИНУ' : 'НЕТ В НАЛИЧИИ'}</span>
                   </>
                 )}
               </button>
-              
-              <div className="flex space-x-3">
-                <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-all duration-300">
-                  <Heart size={16} />
-                  <span className="font-luxury text-sm tracking-wider">В ИЗБРАННОЕ</span>
-                </button>
-                <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 border border-luxury-300 text-luxury-950 hover:border-primary-950 transition-all duration-300">
-                  <Share2 size={16} />
-                  <span className="font-luxury text-sm tracking-wider">ПОДЕЛИТЬСЯ</span>
-                </button>
-              </div>
             </div>
-
-            {/* Product Description */}
-            {product.description && (
-              <div className="pt-6 border-t border-luxury-200">
-                <h3 className="font-medium text-luxury-950 font-luxury text-sm tracking-wider mb-3">ОПИСАНИЕ</h3>
-                <p className="text-luxury-700 leading-relaxed">{product.description}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

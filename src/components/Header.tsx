@@ -1,33 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, User, LogOut } from 'lucide-react';
+import { Search, ShoppingBag, User, LogOut, Heart } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { trpc } from '../utils/trpc';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useFavorites } from '../contexts/FavoritesContext';
 import { AuthModal } from './AuthModal';
 
-interface HeaderProps {
-  cartCount?: number;
-}
-
-export const Header: React.FC<HeaderProps> = () => {
-
-
+export const Header: React.FC = () => {
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isScrolled, setIsScrolled] = useState(false);
   
-
-
+  const catalogRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const favoritesRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
+
   const { state: cartState } = useCart();
   const { state: authState, logout } = useAuth();
+  const { favorites } = useFavorites();
   
+  const location = useLocation();
   // Check if we're on homepage
   const isHomePage = location.pathname === '/';
 
@@ -38,14 +37,28 @@ export const Header: React.FC<HeaderProps> = () => {
     { enabled: searchQuery.length >= 2 }
   );
 
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
 
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Handle outside clicks
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (catalogRef.current && !catalogRef.current.contains(event.target as Node)) {
+        setIsCatalogOpen(false);
+      }
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
         setSearchQuery('');
+      }
+      if (favoritesRef.current && !favoritesRef.current.contains(event.target as Node)) {
+        setIsFavoritesOpen(false);
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
@@ -60,7 +73,9 @@ export const Header: React.FC<HeaderProps> = () => {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        setIsCatalogOpen(false);
         setIsSearchOpen(false);
+        setIsFavoritesOpen(false);
         setSearchQuery('');
       }
     };
@@ -207,6 +222,76 @@ export const Header: React.FC<HeaderProps> = () => {
                       )}
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Heart Icon for Favorites */}
+            <div className="relative" ref={favoritesRef}>
+              <button 
+                onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
+                className={cn(
+                  "relative p-2 transition-all duration-300",
+                  isHomePage ? "text-white hover:text-white/80" : "text-luxury-950 hover:text-primary-950"
+                )}
+              >
+                <Heart size={16} />
+                {favorites.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-950 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-medium animate-scale-in">
+                    {favorites.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Favorites Dropdown */}
+              {isFavoritesOpen && (
+                <div className="absolute top-full right-0 mt-1 w-80 glass-effect minimal-border rounded overflow-hidden animate-fade-in-up">
+                  <div className="p-4 border-b border-luxury-200">
+                    <h3 className="font-display text-sm font-medium text-luxury-950 tracking-wide">
+                      Избранное ({favorites.length})
+                    </h3>
+                  </div>
+                  
+                  <div className="max-h-80 overflow-y-auto">
+                    {favorites.length > 0 ? (
+                      <div>
+                        {favorites.map((product) => (
+                          <Link
+                            key={product.id}
+                            to={`/products/${product.slug}`}
+                            className="flex items-center p-3 hover:bg-luxury-50 transition-colors duration-300 border-b border-luxury-100 last:border-b-0"
+                            onClick={() => setIsFavoritesOpen(false)}
+                          >
+                            <div className="w-12 h-12 bg-luxury-100 rounded flex items-center justify-center mr-3">
+                              {product.images[0] ? (
+                                <img 
+                                  src={product.images[0]} 
+                                  alt={product.name}
+                                  className="w-10 h-10 object-cover rounded"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-primary-100 rounded flex items-center justify-center">
+                                  <span className="text-primary-950 text-xs">IMG</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-luxury-950 font-medium text-sm truncate">
+                                {product.name}
+                              </h4>
+                              <p className="text-luxury-600 text-xs">
+                                ₽ {product.salePrice || product.price}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-luxury-500 text-sm">
+                        Нет избранных товаров
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
