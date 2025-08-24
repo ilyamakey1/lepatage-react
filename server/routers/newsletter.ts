@@ -9,8 +9,6 @@ export const newsletterRouter = router({
   subscribe: publicProcedure
     .input(z.object({
       email: z.string().email(),
-      firstName: z.string().optional(),
-      source: z.string().optional().default('website'),
     }))
     .mutation(async ({ input }) => {
       try {
@@ -24,11 +22,7 @@ export const newsletterRouter = router({
           // If exists but inactive, reactivate
           if (!existing[0].isActive) {
             await db.update(newsletterSubscriptions)
-              .set({ 
-                isActive: true,
-                firstName: input.firstName || existing[0].firstName,
-                source: input.source || existing[0].source
-              })
+              .set({ isActive: true })
               .where(eq(newsletterSubscriptions.email, input.email));
             
             return { success: true, message: 'Подписка возобновлена!' };
@@ -40,9 +34,7 @@ export const newsletterRouter = router({
         // Insert new subscription
         await db.insert(newsletterSubscriptions).values({
           email: input.email,
-          firstName: input.firstName,
           isActive: true,
-          source: input.source,
         });
 
         return { success: true, message: 'Спасибо за подписку!' };
@@ -59,7 +51,7 @@ export const newsletterRouter = router({
     }))
     .mutation(async ({ input }) => {
       try {
-        await db.update(newsletterSubscriptions)
+        const result = await db.update(newsletterSubscriptions)
           .set({ isActive: false })
           .where(eq(newsletterSubscriptions.email, input.email));
 

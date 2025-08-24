@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { trpc } from '../utils/trpc';
@@ -12,19 +12,19 @@ export const HomePage: React.FC = () => {
   // Category sections data
   const categorySections = [
     {
-      categories: ['corsets'],
-      title: 'Корсеты',
-      data: categories?.filter(cat => ['corsets'].includes(cat.slug))
+      categories: ['corsets', 'belts'],
+      title: 'Корсеты и Пояса',
+      data: categories?.filter(cat => ['corsets', 'belts'].includes(cat.slug))
     },
     {
-      categories: ['bags'],
-      title: 'Сумки',
-      data: categories?.filter(cat => ['bags'].includes(cat.slug))
+      categories: ['bags', 'cases'],
+      title: 'Сумки и Чехлы',
+      data: categories?.filter(cat => ['bags', 'cases'].includes(cat.slug))
     },
     {
-      categories: ['accessories'],
-      title: 'Аксессуары',
-      data: categories?.filter(cat => ['accessories'].includes(cat.slug))
+      categories: ['accessories', 'jewelry'],
+      title: 'Аксессуары и Украшения',
+      data: categories?.filter(cat => ['accessories', 'jewelry'].includes(cat.slug))
     }
   ];
 
@@ -77,8 +77,8 @@ export const HomePage: React.FC = () => {
 
       {/* Featured Products Section */}
       {featuredProducts && featuredProducts.length > 0 && (
-        <section className="py-24 px-6 lg:px-12 bg-white">
-          <div className="w-full mx-auto">
+        <section className="py-24 px-8 lg:px-12 bg-white">
+          <div className="max-w-6xl mx-auto">
             <div className="text-center mb-20">
               <h2 className="font-sans text-3xl md:text-4xl font-semibold text-luxury-950 mb-4 tracking-wide">
                 Рекомендуемые товары

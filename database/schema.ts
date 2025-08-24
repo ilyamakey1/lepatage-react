@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, blob } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // Categories table
@@ -75,7 +75,6 @@ export const users = sqliteTable('users', {
   phone: text('phone'),
   passwordHash: text('password_hash'),
   isAdmin: integer('is_admin', { mode: 'boolean' }).default(false),
-  defaultAddress: text('default_address'), // JSON string for default shipping address
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
@@ -142,10 +141,8 @@ export const orderItems = sqliteTable('order_items', {
 export const newsletterSubscriptions = sqliteTable('newsletter_subscriptions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   email: text('email').notNull().unique(),
-  firstName: text('first_name'), // Optional name for newsletter personalization
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
-  source: text('source'), // How they subscribed: 'website', 'checkout', 'admin'
 });
 
 // Types for TypeScript

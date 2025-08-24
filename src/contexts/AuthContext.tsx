@@ -1,12 +1,12 @@
-import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { trpc } from '../utils/trpc';
 
 interface User {
   id: number;
   email: string;
-  firstName: string | null;
-  lastName: string | null;
-  isAdmin: boolean | null;
+  firstName: string;
+  lastName: string;
+  isAdmin: boolean;
 }
 
 interface AuthState {

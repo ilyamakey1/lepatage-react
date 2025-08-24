@@ -162,13 +162,20 @@ export const ordersRouter = router({
       status: z.enum(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']).optional(),
     }))
     .query(async ({ input }) => {
-      let query = db.select().from(orders).orderBy(desc(orders.createdAt));
-
+      let ordersResult;
+      
       if (input.status) {
-        query = query.where(eq(orders.status, input.status));
+        ordersResult = await db.select().from(orders)
+          .where(eq(orders.status, input.status))
+          .orderBy(desc(orders.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+      } else {
+        ordersResult = await db.select().from(orders)
+          .orderBy(desc(orders.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
       }
-
-      const ordersResult = await query.limit(input.limit).offset(input.offset);
 
       return ordersResult.map(order => ({
         ...order,
