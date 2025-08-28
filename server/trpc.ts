@@ -1,5 +1,4 @@
 import { initTRPC } from '@trpc/server';
-import { z } from 'zod';
 
 // Create tRPC instance
 const t = initTRPC.create();

@@ -27,6 +27,9 @@ app.use(express.json());
 // Static files
 app.use('/assets', express.static(path.join(__dirname, '../public/assets')));
 
+// Serve static files from dist folder (production build)
+app.use(express.static(path.join(__dirname, '../dist')));
+
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../public/assets');
 if (!fs.existsSync(uploadsDir)) {
@@ -111,6 +114,11 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve index.html for root route
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
 // Error handling middleware
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Server error:', err);
@@ -122,7 +130,8 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 
 // 404 handler
 app.use((_req, res) => {
-  res.status(404).json({ error: 'Not found' });
+  // For SPA, serve index.html for all routes
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {

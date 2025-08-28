@@ -1,32 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { ProductCard } from '../components/ProductCard';
-import { cn } from '../utils/cn';
 
 export const HomePage: React.FC = () => {
-  const { data: categories } = trpc.categories.getAll.useQuery();
-  const { data: featuredProducts } = trpc.products.getFeatured.useQuery({ limit: 6 });
+  // Автоматический скролл вверх при загрузке страницы
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
-  // Category sections data
-  const categorySections = [
-    {
-      categories: ['corsets', 'belts'],
-      title: 'Корсеты и Пояса',
-      data: categories?.filter(cat => ['corsets', 'belts'].includes(cat.slug))
-    },
-    {
-      categories: ['bags', 'cases'],
-      title: 'Сумки и Чехлы',
-      data: categories?.filter(cat => ['bags', 'cases'].includes(cat.slug))
-    },
-    {
-      categories: ['accessories', 'jewelry'],
-      title: 'Аксессуары и Украшения',
-      data: categories?.filter(cat => ['accessories', 'jewelry'].includes(cat.slug))
-    }
-  ];
+  const { data: featuredProducts } = trpc.products.getFeatured.useQuery({ limit: 6 });
 
   return (
     <div className="min-h-screen bg-white text-luxury-950">
@@ -41,39 +25,67 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Category Sections */}
-      {categorySections.map((section, sectionIndex) => (
-        <section key={sectionIndex} className="min-h-screen flex flex-col lg:flex-row">
-          {section.data?.map((category, index) => (
-            <Link
-              key={category.id}
-              to={`/catalog/${category.slug}`}
-              className={cn(
-                'flex-1 relative overflow-hidden group transition-all duration-700 hover:flex-[1.2] min-h-[50vh] lg:min-h-screen',
-                index === 0 ? 'lg:pr-1' : 'lg:pl-1'
-              )}
+      {/* Additional Info Blocks */}
+      <section className="min-h-screen bg-white">
+        <div className="h-screen grid grid-cols-1 md:grid-cols-2">
+          {/* Left Block - Video */}
+          <div className="relative bg-luxury-100 overflow-hidden">
+            <video 
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              disablePictureInPicture
+              disableRemotePlayback
             >
-              <div className="absolute inset-0">
-                <img
-                  src={category.image || '/assets/placeholder.jpg'}
-                  alt={category.name}
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-luxury-950/60 via-luxury-950/20 to-luxury-950/30 group-hover:from-luxury-950/40" />
-              </div>
+              <source src="/assets/IMG_8424.MOV" type="video/quicktime" />
+            </video>
+          </div>
+
+          {/* Right Block - Product Photo with Price Overlay */}
+          <div className="relative bg-luxury-100 overflow-hidden">
+            <div className="h-full relative">
+              {/* Main Product Photo */}
+              <img
+                src="/assets/IMG_2083.JPG"
+                alt="Фотография из папки майн"
+                className="w-full h-full object-cover"
+              />
               
-              <div className="relative z-10 h-full flex items-end justify-center pb-16">
-                <div className="text-center transform transition-all duration-700 group-hover:translate-y-[-20px] group-hover:scale-105">
-                  <h3 className="font-display text-3xl md:text-4xl font-medium text-white mb-4 tracking-wider drop-shadow-lg">
-                    {category.name}
-                  </h3>
-                  <div className="w-20 h-0.5 bg-white mx-auto transition-all duration-700 group-hover:w-32 group-hover:bg-primary-400" />
+              {/* Price Rectangle Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white p-6">
+                <div className="flex items-start space-x-4">
+                  {/* Small Product Photo */}
+                  <div className="w-24 h-24 rounded-lg overflow-hidden shadow-lg flex-shrink-0">
+                    <img
+                      src="/assets/corset-avegue.jpg"
+                      alt="Корсет ARMOR"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Product Info */}
+                  <div className="flex-1">
+                    {/* Product Name */}
+                    <h3 className="text-luxury-950 font-bold text-xl mb-2">
+                      Корсет ARMOR
+                    </h3>
+                    
+                    {/* View Product Link */}
+                    <Link
+                      to="/product/corset-armor"
+                      className="text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors duration-200 hover:underline"
+                    >
+                      view product
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
-        </section>
-      ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Featured Products Section */}
       {featuredProducts && featuredProducts.length > 0 && (
@@ -90,7 +102,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-              {featuredProducts.map((product) => (
+              {featuredProducts.map((product: any) => (
                 <ProductCard 
                   key={product.id} 
                   product={{

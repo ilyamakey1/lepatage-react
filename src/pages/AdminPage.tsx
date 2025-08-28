@@ -477,7 +477,7 @@ export const AdminPage: React.FC = () => {
                       {newsletterSubscriptions.map((subscriber) => (
                         <tr key={subscriber.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-luxury-950">
-                            {subscriber.firstName || '-'}
+                            -
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
                             {subscriber.email}
@@ -490,7 +490,7 @@ export const AdminPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
-                            {subscriber.source || 'website'}
+                            website
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
                             {new Date(subscriber.createdAt || '').toLocaleDateString('ru-RU')}

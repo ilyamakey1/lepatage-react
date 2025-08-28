@@ -9,18 +9,14 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { AuthModal } from './AuthModal';
 
 export const Header: React.FC = () => {
-  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
-  
-  const catalogRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const favoritesRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const { state: cartState } = useCart();
   const { state: authState, logout } = useAuth();
@@ -40,7 +36,7 @@ export const Header: React.FC = () => {
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      // setIsScrolled(window.scrollY > 100); // This line was removed
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -50,9 +46,9 @@ export const Header: React.FC = () => {
   // Handle outside clicks
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (catalogRef.current && !catalogRef.current.contains(event.target as Node)) {
-        setIsCatalogOpen(false);
-      }
+      // if (catalogRef.current && !catalogRef.current.contains(event.target as Node)) { // This line was removed
+      //   setIsCatalogOpen(false);
+      // }
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
         setSearchQuery('');
@@ -73,7 +69,7 @@ export const Header: React.FC = () => {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsCatalogOpen(false);
+        // setIsCatalogOpen(false); // This line was removed
         setIsSearchOpen(false);
         setIsFavoritesOpen(false);
         setSearchQuery('');

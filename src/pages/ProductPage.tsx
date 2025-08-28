@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { cn } from '../utils/cn';
 import { useCart } from '../contexts/CartContext';
@@ -40,8 +40,12 @@ export const ProductPage: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
-  const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+
+  // Автоматический скролл вверх при загрузке страницы
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   const { data: product, isLoading, error } = trpc.products.getBySlug.useQuery(
     { slug: slug! },
@@ -98,17 +102,10 @@ export const ProductPage: React.FC = () => {
         category: product.category || undefined
       };
       
-      // Добавляем товар с выбранными опциями (если есть)
-      for (let i = 0; i < quantity; i++) {
-        addItem(cartProduct, selectedColor, selectedSize);
-      }
-      
-      // Показываем feedback на 1 секунду
-      setTimeout(() => {
-        setIsAdding(false);
-      }, 1000);
+      addItem(cartProduct);
+      setIsAdding(false);
     } catch (error) {
-      console.error('Error adding product to cart:', error);
+      console.error('Error adding to cart:', error);
       setIsAdding(false);
     }
   };
@@ -136,20 +133,6 @@ export const ProductPage: React.FC = () => {
       createdAt: product.createdAt,
       category: product.category || undefined
     };
-  };
-
-  const nextImage = () => {
-    if (product?.images) {
-      setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
-    }
-  };
-
-  const prevImage = () => {
-    if (product?.images) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? product.images.length - 1 : prev - 1
-      );
-    }
   };
 
   if (isLoading) {
@@ -195,7 +178,7 @@ export const ProductPage: React.FC = () => {
           {/* Product Images - Scrollable */}
           <div className="relative overflow-y-auto" onScroll={handleScroll}>
             {product.images && product.images.length > 0 ? (
-              <div className="space-y-0">
+              <>
                 {product.images.map((image: string, index: number) => (
                   <div key={index} className="w-full h-screen overflow-hidden">
                     <img
@@ -224,7 +207,7 @@ export const ProductPage: React.FC = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </>
             ) : (
               <div className="w-full h-screen flex items-center justify-center bg-transparent">
                 <span className="text-luxury-500">Нет изображений</span>

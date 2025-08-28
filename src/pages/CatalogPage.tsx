@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { trpc } from '../utils/trpc';
@@ -7,6 +7,11 @@ import { cn } from '../utils/cn';
 
 export const CatalogPage: React.FC = () => {
   const { categorySlug } = useParams();
+
+  // Автоматический скролл вверх при загрузке страницы
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [categorySlug]);
 
   const { data: categories } = trpc.categories.getAll.useQuery();
   const { data: category } = trpc.categories.getBySlug.useQuery(

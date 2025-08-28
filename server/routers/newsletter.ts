@@ -51,7 +51,7 @@ export const newsletterRouter = router({
     }))
     .mutation(async ({ input }) => {
       try {
-        const result = await db.update(newsletterSubscriptions)
+        await db.update(newsletterSubscriptions)
           .set({ isActive: false })
           .where(eq(newsletterSubscriptions.email, input.email));
 

@@ -75,12 +75,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
                 NEW
               </span>
             )}
-
-            {product.featured && (
-              <span className="px-2 py-1 bg-luxury-950 text-white text-xs font-medium font-luxury tracking-wide">
-                HIT
-              </span>
-            )}
           </div>
 
           {/* Stock Status */}
