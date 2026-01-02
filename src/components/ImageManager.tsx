@@ -201,7 +201,7 @@ export const ImageManager: React.FC<ImageManagerProps> = ({
                 <img
                   src={image}
                   alt={`Product image ${index + 1}`}
-                  className="w-full h-24 object-cover cursor-move"
+                  className="w-full h-24 object-cover object-center cursor-move"
                   draggable={false}
                 />
 

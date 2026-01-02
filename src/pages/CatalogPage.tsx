@@ -1,5 +1,5 @@
-import { useMemo, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useMemo, useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 
 import { trpc } from '../utils/trpc';
 import { ProductCard } from '../components/ProductCard';
@@ -7,10 +7,15 @@ import { cn } from '../utils/cn';
 
 export const CatalogPage: React.FC = () => {
   const { categorySlug } = useParams();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Автоматический скролл вверх при загрузке страницы
   useEffect(() => {
     window.scrollTo(0, 0);
+    setIsLoaded(false);
+    // Small delay to trigger animations
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
   }, [categorySlug]);
 
   const { data: categories } = trpc.categories.getAll.useQuery();
@@ -21,8 +26,6 @@ export const CatalogPage: React.FC = () => {
 
   const categoryIds = useMemo(() => {
     if (!categorySlug || !categories) return undefined;
-    
-    // Для всех категорий показываем только товары из этой категории
     const category = categories.find(cat => cat.slug === categorySlug);
     return category ? [category.id] : undefined;
   }, [categorySlug, categories]);
@@ -32,74 +35,97 @@ export const CatalogPage: React.FC = () => {
     limit: 50,
   });
 
-  return (
-    <div className="min-h-screen bg-white text-luxury-950 pt-24">
-      <div className="w-full mx-auto px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="font-sans text-4xl md:text-5xl font-semibold text-luxury-950 mb-4 tracking-wide">
-            {category ? category.name : 'Каталог товаров'}
-          </h1>
-        </div>
+  // Sort categories
+  const sortedCategories = useMemo(() => {
+    if (!categories) return [];
+    return [...categories].sort((a, b) => {
+      const order: Record<string, number> = { 'corsets': 1, 'bags': 2, 'accessories': 3 };
+      return (order[a.slug] || 999) - (order[b.slug] || 999);
+    });
+  }, [categories]);
 
-        {/* Controls */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-12 space-y-6 lg:space-y-0">
-          {/* Left Controls */}
-          <div className="flex items-center space-x-6">
-            {/* Category Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              {categories?.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    if (categorySlug === cat.slug) {
-                      window.location.href = '/catalog';
-                    } else {
-                      window.location.href = `/catalog/${cat.slug}`;
-                    }
-                  }}
-                  className={cn(
-                    'px-3 py-2 text-xs transition-all duration-300 font-luxury tracking-wider border-b-2',
-                    categorySlug === cat.slug
-                      ? 'border-primary-950 text-primary-950'
-                      : 'border-transparent text-luxury-600 hover:text-primary-950 hover:border-luxury-300'
-                  )}
-                >
-                  {cat.name.toUpperCase()}
-                </button>
-              ))}
-            </div>
+  return (
+    <div className="min-h-screen bg-white text-luxury-950 pt-14 md:pt-16">
+      {/* Category Tabs - Only on Mobile */}
+      <div className="md:hidden sticky top-14 z-30 bg-white border-b border-luxury-100">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex px-4 py-3 gap-2">
+            {sortedCategories.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/catalog/${cat.slug}`}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap",
+                  categorySlug === cat.slug 
+                    ? "bg-luxury-950 text-white" 
+                    : "bg-luxury-100 text-luxury-600 active:bg-luxury-200"
+                )}
+              >
+                {cat.name}
+              </Link>
+            ))}
           </div>
+        </div>
+      </div>
+
+      <div className="px-4 md:px-8 py-6 md:py-10">
+        {/* Header */}
+        <div className={cn(
+          "mb-6 md:mb-10 transition-all duration-500",
+          isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        )}>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-luxury-950">
+            {category ? category.name : 'Каталог'}
+          </h1>
+          {products && (
+            <p className="text-luxury-500 mt-2 text-sm md:text-base">
+              {products.length} {products.length === 1 ? 'товар' : products.length < 5 ? 'товара' : 'товаров'}
+            </p>
+          )}
         </div>
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-950"></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-[3/4] bg-luxury-100 rounded-lg mb-3" />
+                <div className="h-4 bg-luxury-100 rounded w-3/4 mb-2" />
+                <div className="h-4 bg-luxury-100 rounded w-1/2" />
+              </div>
+            ))}
           </div>
         ) : products && products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
-            {products.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={{
-                  ...product,
-                  description: product.description || undefined,
-                  shortDescription: product.shortDescription || undefined,
-                  salePrice: product.salePrice || undefined,
-                  inStock: product.inStock ?? true,
-                  featured: product.featured ?? false,
-                  isNew: product.isNew ?? false,
-                  onSale: product.onSale ?? false,
-                  createdAt: product.createdAt || new Date().toISOString(),
-                  category: product.category || undefined
-                }}
-              />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+            {products.map((product, index) => (
+              <div
+                key={product.id}
+                className={cn(
+                  "transition-all duration-500",
+                  isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                )}
+                style={{ transitionDelay: `${Math.min(index * 50, 400)}ms` }}
+              >
+                <ProductCard 
+                  product={{
+                    ...product,
+                    description: product.description || undefined,
+                    shortDescription: product.shortDescription || undefined,
+                    salePrice: product.salePrice || undefined,
+                    inStock: product.inStock ?? true,
+                    featured: product.featured ?? false,
+                    isNew: product.isNew ?? false,
+                    onSale: product.onSale ?? false,
+                    createdAt: product.createdAt || new Date().toISOString(),
+                    category: product.category || undefined
+                  }}
+                />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-24">
-            <p className="text-luxury-600 text-lg font-luxury tracking-wider">ТОВАРЫ НЕ НАЙДЕНЫ</p>
+          <div className="text-center py-20">
+            <p className="text-luxury-500 text-lg">Товары не найдены</p>
           </div>
         )}
       </div>

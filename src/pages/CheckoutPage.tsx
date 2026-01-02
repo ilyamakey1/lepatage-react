@@ -55,10 +55,10 @@ export const CheckoutPage: React.FC = () => {
   // If cart is empty, redirect
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-white pt-24 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-luxury-950 mb-4">Корзина пуста</h1>
-          <p className="text-luxury-600 mb-6">Добавьте товары в корзину для оформления заказа</p>
+      <div className="min-h-screen bg-white pt-16 sm:pt-24 flex items-center justify-center">
+        <div className="text-center px-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-luxury-950 mb-4">Корзина пуста</h1>
+          <p className="text-luxury-600 mb-6 text-sm sm:text-base">Добавьте товары в корзину для оформления заказа</p>
           <button
             onClick={() => navigate('/catalog')}
             className="inline-flex items-center space-x-2 px-6 py-3 bg-luxury-950 text-white hover:bg-primary-950 transition-colors duration-300"
@@ -147,8 +147,8 @@ export const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-24">
-      <div className="w-full mx-auto px-6 lg:px-12 py-8">
+    <div className="min-h-screen bg-white pt-16 sm:pt-24">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -159,7 +159,7 @@ export const CheckoutPage: React.FC = () => {
             <span>НАЗАД В КОРЗИНУ</span>
           </button>
           
-          <h1 className="text-3xl font-bold text-luxury-950 mt-4">Оформление заказа</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-luxury-950 mt-4">Оформление заказа</h1>
         </div>
 
         {/* Progress Steps */}
@@ -185,15 +185,15 @@ export const CheckoutPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Form */}
           <div className="lg:col-span-2">
             {/* Step 1: Customer Information */}
             {currentStep >= 1 && (
-              <div className="mb-8 p-6 border border-luxury-200 rounded">
+              <div className="mb-6 sm:mb-8 p-4 sm:p-6 border border-luxury-200 rounded">
                 <h2 className="text-xl font-semibold text-luxury-950 mb-4">Контактные данные</h2>
                 <form onSubmit={handleCustomerInfoSubmit}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-luxury-700 mb-1">
                         Имя *
@@ -262,13 +262,13 @@ export const CheckoutPage: React.FC = () => {
 
             {/* Step 2: Shipping Address */}
             {currentStep >= 2 && (
-              <div className="mb-8 p-6 border border-luxury-200 rounded">
+              <div className="mb-6 sm:mb-8 p-4 sm:p-6 border border-luxury-200 rounded">
                 <h2 className="text-xl font-semibold text-luxury-950 mb-4 flex items-center space-x-2">
                   <MapPin size={20} />
                   <span>Адрес доставки</span>
                 </h2>
                 <form onSubmit={handleShippingSubmit}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-luxury-700 mb-1">
                         Страна *
@@ -350,7 +350,7 @@ export const CheckoutPage: React.FC = () => {
 
             {/* Step 3: Payment */}
             {currentStep >= 3 && (
-              <div className="mb-8 p-6 border border-luxury-200 rounded">
+              <div className="mb-6 sm:mb-8 p-4 sm:p-6 border border-luxury-200 rounded">
                 <h2 className="text-xl font-semibold text-luxury-950 mb-4 flex items-center space-x-2">
                   <CreditCard size={20} />
                   <span>Способ оплаты</span>
@@ -452,8 +452,8 @@ export const CheckoutPage: React.FC = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 p-6 border border-luxury-200 rounded">
-              <h3 className="text-lg font-semibold text-luxury-950 mb-4">Ваш заказ</h3>
+            <div className="sticky top-16 sm:top-24 p-4 sm:p-6 border border-luxury-200 rounded">
+              <h3 className="text-base sm:text-lg font-semibold text-luxury-950 mb-4">Ваш заказ</h3>
               
               <div className="space-y-4">
                 {items.map((item: any) => (
@@ -465,9 +465,6 @@ export const CheckoutPage: React.FC = () => {
                     />
                     <div className="flex-1">
                       <div className="font-medium text-sm text-luxury-950">{item.name}</div>
-                      {item.selectedColor && (
-                        <div className="text-xs text-luxury-600">Цвет: {item.selectedColor}</div>
-                      )}
                       {item.selectedSize && (
                         <div className="text-xs text-luxury-600">Размер: {item.selectedSize}</div>
                       )}

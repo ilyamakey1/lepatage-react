@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../utils/trpc';
-import { Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2, X } from 'lucide-react';
+import { Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2, X, Home } from 'lucide-react';
 import { ImageManager } from '../components/ImageManager';
+import { HomepageImageUpload } from '../components/HomepageImageUpload';
 
 export const AdminPage: React.FC = () => {
   const { state, logout } = useAuth();
@@ -39,6 +40,31 @@ export const AdminPage: React.FC = () => {
   const { data: users } = trpc.auth.getAllUsers.useQuery();
   const { data: categories } = trpc.categories.getAll.useQuery();
   const { data: newsletterSubscriptions } = trpc.newsletter.getAllSubscribers.useQuery();
+  const { data: customOrders } = trpc.customOrders.getAll.useQuery({ limit: 100, offset: 0 });
+  
+  // Homepage settings
+  const { data: homepageSettings, refetch: refetchHomepageSettings } = trpc.homepage.getSettings.useQuery();
+  const [homepageForm, setHomepageForm] = useState({
+    hero_image: '',
+    grid_top_left: '',
+    grid_top_right: '',
+    grid_bottom_left: '',
+    grid_bottom_right: '',
+    hero_product_id: '',
+  });
+  
+  // Get hero product for preview
+  const heroProductSlug = homepageForm.hero_product_id || 'corset-armor';
+  const { data: heroProduct } = trpc.products.getBySlug.useQuery(
+    { slug: heroProductSlug }
+  );
+  
+  const updateHomepageSettingsMutation = trpc.homepage.updateSettings.useMutation({
+    onSuccess: () => {
+      refetchHomepageSettings();
+      alert('Настройки главной страницы обновлены!');
+    },
+  });
 
   const deleteProductMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
@@ -85,6 +111,26 @@ export const AdminPage: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  // Sync homepage settings with form
+  useEffect(() => {
+    if (homepageSettings) {
+      setHomepageForm({
+        hero_image: homepageSettings.hero_image || '',
+        grid_top_left: homepageSettings.grid_top_left || '',
+        grid_top_right: homepageSettings.grid_top_right || '',
+        grid_bottom_left: homepageSettings.grid_bottom_left || '',
+        grid_bottom_right: homepageSettings.grid_bottom_right || '',
+        hero_product_id: homepageSettings.hero_product_id || '',
+      });
+    }
+  }, [homepageSettings]);
+
+  const handleSaveHomepageSettings = () => {
+    updateHomepageSettingsMutation.mutate({
+      settings: homepageForm,
+    });
   };
 
   const handleDeleteProduct = (productId: number) => {
@@ -162,13 +208,13 @@ export const AdminPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24">
-      <div className="w-full mx-auto px-6 lg:px-12 py-8">
+    <div className="min-h-screen bg-white pt-20 sm:pt-24">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-luxury-950">Админ панель</h1>
-            <p className="text-luxury-600">Добро пожаловать, {user.firstName} {user.lastName}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-luxury-950">Админ панель</h1>
+            <p className="text-luxury-600 text-sm sm:text-base">Добро пожаловать, {user.firstName} {user.lastName}</p>
           </div>
           <button
             onClick={handleLogout}
@@ -180,50 +226,78 @@ export const AdminPage: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-1 bg-luxury-100 p-1 rounded-lg mb-8">
+        <div className="flex flex-wrap gap-1 bg-luxury-100 p-1 rounded-lg mb-6 sm:mb-8">
           <button
             onClick={() => setActiveTab('products')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
+            className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-md transition-all duration-300 text-sm sm:text-base ${
               activeTab === 'products'
                 ? 'bg-white text-primary-950 shadow-sm'
                 : 'text-luxury-600 hover:text-luxury-950'
             }`}
           >
-            <Package size={16} />
-            <span>Товары</span>
+            <Package size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Товары</span>
+            <span className="sm:hidden">Т</span>
           </button>
           <button
             onClick={() => setActiveTab('orders')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
+            className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-md transition-all duration-300 text-sm sm:text-base ${
               activeTab === 'orders'
                 ? 'bg-white text-primary-950 shadow-sm'
                 : 'text-luxury-600 hover:text-luxury-950'
             }`}
           >
-            <ShoppingCart size={16} />
-            <span>Заказы</span>
+            <ShoppingCart size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Заказы</span>
+            <span className="sm:hidden">З</span>
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
+            className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-md transition-all duration-300 text-sm sm:text-base ${
               activeTab === 'users'
                 ? 'bg-white text-primary-950 shadow-sm'
                 : 'text-luxury-600 hover:text-luxury-950'
             }`}
           >
-            <Users size={16} />
-            <span>Пользователи</span>
+            <Users size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Пользователи</span>
+            <span className="sm:hidden">П</span>
           </button>
           <button
             onClick={() => setActiveTab('newsletter')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
+            className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-md transition-all duration-300 text-sm sm:text-base ${
               activeTab === 'newsletter'
                 ? 'bg-white text-primary-950 shadow-sm'
                 : 'text-luxury-600 hover:text-luxury-950'
             }`}
           >
-            <Package size={16} />
-            <span>Подписчики</span>
+            <Package size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Подписчики</span>
+            <span className="sm:hidden">Н</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('custom-orders')}
+            className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-md transition-all duration-300 text-sm sm:text-base ${
+              activeTab === 'custom-orders'
+                ? 'bg-white text-primary-950 shadow-sm'
+                : 'text-luxury-600 hover:text-luxury-950'
+            }`}
+          >
+            <ShoppingCart size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Индивидуальные заказы</span>
+            <span className="sm:hidden">И</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('homepage')}
+            className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-md transition-all duration-300 text-sm sm:text-base ${
+              activeTab === 'homepage'
+                ? 'bg-white text-primary-950 shadow-sm'
+                : 'text-luxury-600 hover:text-luxury-950'
+            }`}
+          >
+            <Home size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Главная страница</span>
+            <span className="sm:hidden">Г</span>
           </button>
         </div>
 
@@ -503,6 +577,291 @@ export const AdminPage: React.FC = () => {
               ) : (
                 <div className="text-luxury-600">Подписчиков пока нет</div>
               )}
+            </div>
+          )}
+
+          {/* Custom Orders Tab */}
+          {activeTab === 'custom-orders' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-luxury-950 mb-6">Индивидуальные заказы</h2>
+              {customOrders && customOrders.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-luxury-200">
+                    <thead className="bg-luxury-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Номер заказа
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Клиент
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Инициалы
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Мерки
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Статус
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Дата
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-luxury-500 uppercase tracking-wider">
+                          Действия
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-luxury-200">
+                      {customOrders.map((order) => (
+                        <tr key={order.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-luxury-950">
+                            {order.orderNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            <div>
+                              <div className="font-medium">{order.name}</div>
+                              <div className="text-luxury-500">{order.email}</div>
+                              <div className="text-luxury-500">{order.phone}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            <div>
+                              <div className="font-medium">{order.initials}</div>
+                              <div className="text-luxury-500 capitalize">
+                                {order.metalType === 'gold' ? 'Золото' : 'Серебро'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-950">
+                            {order.sendMeasurementsLater ? (
+                              <span className="text-blue-600">Вышлет позже</span>
+                            ) : (
+                              <div className="text-xs">
+                                {order.bust && <div>Грудь: {order.bust}см</div>}
+                                {order.waist && <div>Талия: {order.waist}см</div>}
+                                {order.hips && <div>Бёдра: {order.hips}см</div>}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {order.status === 'new' ? 'Новый' :
+                               order.status === 'in_progress' ? 'В работе' :
+                               order.status === 'completed' ? 'Завершен' :
+                               order.status === 'cancelled' ? 'Отменен' :
+                               order.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-luxury-500">
+                            {new Date(order.createdAt || '').toLocaleDateString('ru-RU')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button 
+                              onClick={() => alert(`Детали заказа:\n\nКлиент: ${order.name}\nEmail: ${order.email}\nТелефон: ${order.phone}\n\nИнициалы: ${order.initials}\nМатериал: ${order.metalType === 'gold' ? 'Золото' : 'Серебро'}\n\nАдрес: ${order.country}, ${order.city}\n${order.address}\n\nСпособ доставки: ${order.deliveryMethod}\nЖелаемая дата: ${order.desiredDate || 'Не указана'}\n\nКомментарии: ${order.figureComments || 'Нет'}`)}
+                              className="text-primary-600 hover:text-primary-900"
+                            >
+                              Подробнее
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-luxury-600">Индивидуальных заказов пока нет</div>
+              )}
+            </div>
+          )}
+
+          {/* Homepage Tab */}
+          {activeTab === 'homepage' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-luxury-950 mb-6">Управление главной страницей</h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Visual Prototype */}
+                <div className="border border-luxury-200 rounded-lg p-6 bg-luxury-50">
+                  <h3 className="text-lg font-semibold text-luxury-950 mb-4">Прототип главной страницы</h3>
+                  
+                  <div className="space-y-4">
+                    {/* Hero Section Preview */}
+                    <div className="border border-luxury-300 rounded-lg overflow-hidden bg-white">
+                      <div className="relative h-32 bg-luxury-100">
+                        {homepageForm.hero_image ? (
+                          <img 
+                            src={homepageForm.hero_image} 
+                            alt="Hero" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs">
+                            Hero изображение
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 2x2 Grid Preview */}
+                    <div className="border border-luxury-300 rounded-lg overflow-hidden bg-white">
+                      <div className="grid grid-cols-2 h-64">
+                        {/* Top Left */}
+                        <div className="relative bg-luxury-100 border-r border-b border-luxury-300">
+                          {homepageForm.grid_top_left ? (
+                            homepageForm.grid_top_left.endsWith('.MOV') || homepageForm.grid_top_left.endsWith('.mov') || homepageForm.grid_top_left.endsWith('.mp4') ? (
+                              <video src={homepageForm.grid_top_left} className="w-full h-full object-cover" muted loop />
+                            ) : (
+                              <img src={homepageForm.grid_top_left} alt="Top Left" className="w-full h-full object-cover" />
+                            )
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
+                              Верхняя<br/>левая
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Top Right */}
+                        <div className="relative bg-luxury-100 border-b border-luxury-300">
+                          {homepageForm.grid_top_right ? (
+                            <img src={homepageForm.grid_top_right} alt="Top Right" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
+                              Верхняя<br/>правая
+                            </div>
+                          )}
+                          {/* Product Plaque Preview on Top Right */}
+                          {heroProduct && homepageForm.hero_product_id && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-lg p-1 text-xs">
+                              <div className="flex items-center space-x-1">
+                                <div className="w-6 h-6 bg-luxury-200 rounded flex-shrink-0"></div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold truncate text-xs">{heroProduct.name}</div>
+                                  <div className="text-luxury-600 text-xs">{heroProduct.price} ₽</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Bottom Left */}
+                        <div className="relative bg-luxury-100 border-r border-luxury-300">
+                          {homepageForm.grid_bottom_left ? (
+                            <img src={homepageForm.grid_bottom_left} alt="Bottom Left" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
+                              Нижняя<br/>левая
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Bottom Right */}
+                        <div className="relative bg-luxury-100">
+                          {homepageForm.grid_bottom_right ? (
+                            <img src={homepageForm.grid_bottom_right} alt="Bottom Right" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
+                              Нижняя<br/>правая
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Settings Form */}
+                <div className="space-y-6">
+                  {/* Hero Section */}
+                  <div className="border border-luxury-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-luxury-950 mb-4">Hero секция</h3>
+                    
+                    <div className="space-y-4">
+                      <HomepageImageUpload
+                        imageUrl={homepageForm.hero_image}
+                        onImageChange={(url) => setHomepageForm({...homepageForm, hero_image: url})}
+                        onRemove={() => setHomepageForm({...homepageForm, hero_image: ''})}
+                        label="Hero изображение"
+                        placeholder="/assets/hero-woman-corset.jpg"
+                      />
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-luxury-950 mb-2">
+                          Продукт для плашки
+                        </label>
+                        <select
+                          value={homepageForm.hero_product_id}
+                          onChange={(e) => setHomepageForm({...homepageForm, hero_product_id: e.target.value})}
+                          className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
+                        >
+                          <option value="">Выберите продукт</option>
+                          {products?.map((product) => (
+                            <option key={product.id} value={product.slug}>
+                              {product.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2x2 Grid Section */}
+                  <div className="border border-luxury-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-luxury-950 mb-4">2x2 Сетка фотографий</h3>
+                    
+                    <div className="space-y-4">
+                      <HomepageImageUpload
+                        imageUrl={homepageForm.grid_top_left}
+                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_top_left: url})}
+                        onRemove={() => setHomepageForm({...homepageForm, grid_top_left: ''})}
+                        label="Верхняя левая (видео/фото)"
+                        placeholder="/assets/IMG_8424.MOV"
+                        isVideo={true}
+                      />
+                      
+                      <HomepageImageUpload
+                        imageUrl={homepageForm.grid_top_right}
+                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_top_right: url})}
+                        onRemove={() => setHomepageForm({...homepageForm, grid_top_right: ''})}
+                        label="Верхняя правая"
+                        placeholder="/assets/IMG_2083.JPG"
+                      />
+                      
+                      <HomepageImageUpload
+                        imageUrl={homepageForm.grid_bottom_left}
+                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_bottom_left: url})}
+                        onRemove={() => setHomepageForm({...homepageForm, grid_bottom_left: ''})}
+                        label="Нижняя левая"
+                        placeholder="/assets/L'Epatage DSC07578.JPG"
+                      />
+                      
+                      <HomepageImageUpload
+                        imageUrl={homepageForm.grid_bottom_right}
+                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_bottom_right: url})}
+                        onRemove={() => setHomepageForm({...homepageForm, grid_bottom_right: ''})}
+                        label="Нижняя правая"
+                        placeholder="/assets/IMG_6013.JPG"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveHomepageSettings}
+                      disabled={updateHomepageSettingsMutation.isPending}
+                      className="px-6 py-3 bg-primary-950 text-white hover:bg-primary-900 transition-colors duration-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updateHomepageSettingsMutation.isPending ? 'Сохранение...' : 'Сохранить изменения'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

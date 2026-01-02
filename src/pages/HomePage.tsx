@@ -1,87 +1,164 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { trpc } from '../utils/trpc';
 import { ProductCard } from '../components/ProductCard';
 
 export const HomePage: React.FC = () => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isHeroLoaded, setIsHeroLoaded] = useState(false);
+
   // Автоматический скролл вверх при загрузке страницы
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Отслеживание прогресса скролла
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollWidth = container.scrollWidth - container.clientWidth;
+      const scrolled = container.scrollLeft;
+      const progress = scrollWidth > 0 ? (scrolled / scrollWidth) * 100 : 0;
+      setScrollProgress(progress);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const { data: featuredProducts } = trpc.products.getFeatured.useQuery({ limit: 6 });
+  const { data: homepageSettings } = trpc.homepage.getSettings.useQuery();
+  
+  // Get hero product if specified
+  const heroProductSlug = homepageSettings?.hero_product_id || 'corset-armor';
+  const { data: heroProduct } = trpc.products.getBySlug.useQuery(
+    { slug: heroProductSlug }
+  );
+  
+  // Fallback to default values if settings not loaded
+  const heroImage = homepageSettings?.hero_image || '/assets/hero-woman-corset.jpg';
+  const gridTopLeft = homepageSettings?.grid_top_left || '/assets/IMG_8424.MOV';
+  const gridTopRight = homepageSettings?.grid_top_right || '/assets/IMG_2083.JPG';
+  const gridBottomLeft = homepageSettings?.grid_bottom_left || '/assets/L\'Epatage DSC07578.JPG';
+  const gridBottomRight = homepageSettings?.grid_bottom_right || '/assets/IMG_6013.JPG';
+  
+  // Determine if top left is video or image
+  const isVideo = gridTopLeft.endsWith('.MOV') || gridTopLeft.endsWith('.mov') || gridTopLeft.endsWith('.mp4');
 
   return (
-    <div className="min-h-screen bg-white text-luxury-950">
-      {/* Hero Section */}
-      <section className="relative min-h-screen overflow-hidden bg-white py-32">
+    <div className="min-h-screen text-luxury-950 overflow-x-hidden">
+      {/* Hero Section - Adaptive height */}
+      <section className="relative h-hero overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="/assets/hero-woman-corset.jpg"
+            src={heroImage}
             alt="L'epatage Woman in Corset"
-            className="w-full h-full object-cover object-center transition-transform duration-1000 hover:scale-105"
+            className={`w-full h-full object-cover object-center transition-all duration-1000 ${
+              isHeroLoaded ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
+            }`}
+            onLoad={() => setIsHeroLoaded(true)}
           />
+          {/* Gradient overlays for mobile readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 md:bg-gradient-to-r md:from-black/20 md:via-transparent md:to-transparent" />
         </div>
       </section>
 
-      {/* Additional Info Blocks */}
-      <section className="min-h-screen bg-white">
-        <div className="h-screen grid grid-cols-1 md:grid-cols-2">
-          {/* Left Block - Video */}
-          <div className="relative bg-luxury-100 overflow-hidden">
-            <video 
-              className="w-full h-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              disablePictureInPicture
-              disableRemotePlayback
-            >
-              <source src="/assets/IMG_8424.MOV" type="video/quicktime" />
-            </video>
+      {/* 2x2 Grid Layout */}
+      <section className="mb-8 md:mb-16 lg:mb-24">
+        <div className="grid grid-cols-2">
+          {/* Top Left - Video or Image */}
+          <div className="relative">
+            <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden">
+              {isVideo ? (
+                <video 
+                  src={gridTopLeft} 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline
+                  className="w-full h-full object-cover object-center"
+                />
+              ) : (
+                <img
+                  src={gridTopLeft}
+                  alt="L'Épatage Collection"
+                  className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
+              )}
+            </div>
           </div>
 
-          {/* Right Block - Product Photo with Price Overlay */}
-          <div className="relative bg-luxury-100 overflow-hidden">
-            <div className="h-full relative">
-              {/* Main Product Photo */}
+          {/* Top Right - with Product Plaque */}
+          <div className="relative">
+            <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden relative">
               <img
-                src="/assets/IMG_2083.JPG"
-                alt="Фотография из папки майн"
-                className="w-full h-full object-cover"
+                src={gridTopRight}
+                alt="L'Épatage Collection"
+                className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                loading="lazy"
               />
-              
-              {/* Price Rectangle Overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-white p-6">
-                <div className="flex items-start space-x-4">
-                  {/* Small Product Photo */}
-                  <div className="w-24 h-24 rounded-lg overflow-hidden shadow-lg flex-shrink-0">
-                    <img
-                      src="/assets/corset-avegue.jpg"
-                      alt="Корсет ARMOR"
-                      className="w-full h-full object-cover"
-                    />
+              {/* View Product Plaque - Responsive */}
+              {heroProduct && (
+                <Link 
+                  to={`/products/${heroProduct?.slug || ''}`}
+                  className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm shadow-lg active:bg-white transition-colors"
+                >
+                  <div className="px-3 py-3 md:px-4 md:py-4 flex items-center gap-3">
+                    <div className="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 overflow-hidden rounded-lg">
+                      <img
+                        src={heroProduct.images?.[0] || '/assets/corset-avegue.jpg'}
+                        alt={heroProduct.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-luxury-950 font-semibold text-sm md:text-base leading-tight line-clamp-1">
+                        {heroProduct.name}
+                      </h3>
+                      <p className="text-luxury-700 font-medium text-sm mt-0.5">
+                        {heroProduct?.salePrice ? (
+                          <>
+                            <span className="line-through text-luxury-400 mr-1">{heroProduct?.price} ₽</span>
+                            <span>{heroProduct?.salePrice} ₽</span>
+                          </>
+                        ) : (
+                          `${heroProduct?.price} ₽`
+                        )}
+                      </p>
+                    </div>
+                    <ChevronRight size={20} className="text-luxury-400 flex-shrink-0" />
                   </div>
-                  
-                  {/* Product Info */}
-                  <div className="flex-1">
-                    {/* Product Name */}
-                    <h3 className="text-luxury-950 font-bold text-xl mb-2">
-                      Корсет ARMOR
-                    </h3>
-                    
-                    {/* View Product Link */}
-                    <Link
-                      to="/product/corset-armor"
-                      className="text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors duration-200 hover:underline"
-                    >
-                      view product
-                    </Link>
-                  </div>
-                </div>
-              </div>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Left */}
+          <div className="relative">
+            <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden">
+              <img
+                src={gridBottomLeft}
+                alt="L'Épatage Collection"
+                className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          {/* Bottom Right */}
+          <div className="relative">
+            <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden">
+              <img
+                src={gridBottomRight}
+                alt="L'Épatage Style"
+                className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                loading="lazy"
+              />
             </div>
           </div>
         </div>
@@ -89,22 +166,64 @@ export const HomePage: React.FC = () => {
 
       {/* Featured Products Section */}
       {featuredProducts && featuredProducts.length > 0 && (
-        <section className="py-24 px-8 lg:px-12 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="font-sans text-3xl md:text-4xl font-semibold text-luxury-950 mb-4 tracking-wide">
-                Рекомендуемые товары
-              </h2>
-              <div className="w-16 h-px bg-primary-950 mx-auto mb-6" />
-              <p className="text-lg text-luxury-700 max-w-xl mx-auto font-light leading-relaxed">
-                Откройте для себя наши самые популярные изделия, созданные с любовью к деталям
-              </p>
-            </div>
+        <section className="relative pb-12 md:pb-20">
+          {/* Section Header */}
+          <div className="px-4 md:px-8 mb-6 md:mb-10">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-luxury-950 tracking-tight">
+              Рекомендации
+            </h2>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-              {featuredProducts.map((product: any) => (
+          {/* Mobile: Horizontal scroll */}
+          <div className="md:hidden relative">
+            <div 
+              ref={scrollContainerRef}
+              className="overflow-x-auto scrollbar-hide px-4 scroll-smooth snap-x-mandatory"
+            >
+              <div className="flex gap-3 pb-4">
+                {featuredProducts?.map((product: any, index: number) => (
+                  <div 
+                    key={product.id}
+                    className={`flex-none w-[45vw] snap-start animate-fade-in-up opacity-0`}
+                    style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+                  >
+                    <ProductCard 
+                      product={{
+                        ...product,
+                        description: product.description || undefined,
+                        shortDescription: product.shortDescription || undefined,
+                        salePrice: product.salePrice || undefined,
+                        inStock: product.inStock ?? true,
+                        featured: product.featured ?? false,
+                        isNew: product.isNew ?? false,
+                        onSale: product.onSale ?? false,
+                        createdAt: product.createdAt || new Date().toISOString(),
+                        category: product.category || undefined
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Scroll Progress */}
+            <div className="mx-4 h-0.5 bg-luxury-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-luxury-950 transition-all duration-150 ease-out rounded-full"
+                style={{ width: `${Math.max(scrollProgress, 10)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Tablet & Desktop: Grid */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 px-6 md:px-8">
+            {featuredProducts?.map((product: any, index: number) => (
+              <div
+                key={product.id}
+                className="animate-fade-in-up opacity-0"
+                style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+              >
                 <ProductCard 
-                  key={product.id} 
                   product={{
                     ...product,
                     description: product.description || undefined,
@@ -118,44 +237,12 @@ export const HomePage: React.FC = () => {
                     category: product.category || undefined
                   }}
                 />
-              ))}
-            </div>
-
-            <div className="text-center mt-16">
-              <Link
-                to="/catalog"
-                className="inline-flex items-center space-x-2 px-6 py-3 border border-luxury-950 text-luxury-950 hover:bg-luxury-950 hover:text-white font-medium tracking-wider transition-all duration-300 group font-luxury text-sm"
-              >
-                <span>СМОТРЕТЬ ВСЕ ТОВАРЫ</span>
-                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
-              </Link>
-            </div>
+              </div>
+            ))}
           </div>
+
         </section>
       )}
-
-      {/* About Section */}
-      <section className="py-24 px-8 lg:px-12 bg-luxury-50">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-sans text-3xl md:text-4xl font-semibold text-luxury-950 mb-4 tracking-wide">
-            О бренде L'Épatage
-          </h2>
-          <div className="w-16 h-px bg-primary-950 mx-auto mb-8" />
-          
-          <div className="space-y-6 text-base md:text-lg text-luxury-700 leading-relaxed font-light">
-            <p>
-              L'Épatage — это бренд, который создает уникальные аксессуары для тех, 
-              кто ценит качество, стиль и индивидуальность. Наши изделия сочетают в себе 
-              современные тренды и классическую элегантность.
-            </p>
-            <p>
-              Каждый продукт создается с любовью к деталям и вниманием к потребностям 
-              наших клиентов. Мы используем только качественные материалы и следуем 
-              последним тенденциям моды.
-            </p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

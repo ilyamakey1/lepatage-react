@@ -82,25 +82,36 @@ lepatage-react/
 
 ### Development
 
-**Быстрый запуск (рекомендуется):**
+**🚀 Быстрый запуск (рекомендуется):**
 ```bash
-npm run dev:full
+# Используйте новый скрипт для автоматического запуска обоих серверов
+./start-dev.sh
 ```
-Запустит одновременно фронтенд и API сервер.
+Этот скрипт автоматически:
+- Остановит существующие процессы на портах 3001 и 5173
+- Запустит backend сервер на порту 3001
+- Запустит frontend сервер на порту 5173
+- Покажет статус и URL для доступа
 
-**Отдельный запуск:**
+**🛑 Остановка серверов:**
+```bash
+./stop-dev.sh
+```
 
-1. **Start the backend server**:
-   ```bash
-   npm run server
-   ```
-   The API will be available at `http://localhost:3001`
+**📱 Альтернативный способ (npm scripts):**
+```bash
+# Запуск обоих серверов одновременно
+npm run dev:full
 
-2. **Start the frontend development server** (in a new terminal):
-   ```bash
-   npm run dev
-   ```
-   The website will be available at `http://localhost:5173`
+# Или отдельно:
+npm run server    # Backend на http://localhost:3001
+npm run dev       # Frontend на http://localhost:5173
+```
+
+**🌐 Доступ к приложению:**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3001/api
+- **Health Check**: http://localhost:3001/health
 
 ### Building for Production
 
@@ -114,10 +125,13 @@ npm run preview
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
+- `./start-dev.sh` - 🚀 **Автоматический запуск обоих серверов** (рекомендуется)
+- `./stop-dev.sh` - 🛑 **Остановка всех серверов**
+- `npm run dev` - Start frontend development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run server` - Start the backend server
+- `npm run dev:full` - Start both frontend and backend servers
 - `npm run db:migrate` - Run database migrations
 - `npm run db:seed` - Seed database with sample data
 - `npm run lint` - Run ESLint

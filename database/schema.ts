@@ -145,6 +145,57 @@ export const newsletterSubscriptions = sqliteTable('newsletter_subscriptions', {
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Homepage settings table
+export const homepageSettings = sqliteTable('homepage_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key').notNull().unique(), // hero_image, grid_top_left, grid_top_right, grid_bottom_left, grid_bottom_right, hero_product_id
+  value: text('value'), // Image URL or product ID
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Custom orders table
+export const customOrders = sqliteTable('custom_orders', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  orderNumber: text('order_number').notNull().unique(),
+  
+  // Contact info
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone').notNull(),
+  preferredContact: text('preferred_contact'), // phone, messenger, email
+  socialLink: text('social_link'),
+  
+  // Measurements
+  bust: text('bust'),
+  waist: text('waist'),
+  hips: text('hips'),
+  sendMeasurementsLater: integer('send_measurements_later', { mode: 'boolean' }).default(false),
+  photos: text('photos'), // JSON array of photo URLs
+  figureComments: text('figure_comments'),
+  
+  // Initials
+  metalType: text('metal_type'), // gold, silver
+  initials: text('initials'),
+  
+  // Delivery
+  country: text('country'),
+  city: text('city'),
+  postalCode: text('postal_code'),
+  address: text('address'),
+  deliveryMethod: text('delivery_method'), // courier, europost, cdek
+  desiredDate: text('desired_date'),
+  needOnlineMeasurements: integer('need_online_measurements', { mode: 'boolean' }).default(false),
+  
+  // Status and processing
+  status: text('status').notNull().default('new'), // new, in_progress, completed, cancelled
+  adminNotes: text('admin_notes'),
+  estimatedPrice: real('estimated_price'),
+  
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Types for TypeScript
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
@@ -175,3 +226,9 @@ export type NewOrderItem = typeof orderItems.$inferInsert;
 
 export type NewsletterSubscription = typeof newsletterSubscriptions.$inferSelect;
 export type NewNewsletterSubscription = typeof newsletterSubscriptions.$inferInsert;
+
+export type HomepageSetting = typeof homepageSettings.$inferSelect;
+export type NewHomepageSetting = typeof homepageSettings.$inferInsert;
+
+export type CustomOrder = typeof customOrders.$inferSelect;
+export type NewCustomOrder = typeof customOrders.$inferInsert;

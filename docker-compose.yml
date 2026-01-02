@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Main application
+  app:
+    build: .
+    container_name: lepatage-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./database/lepatage.db
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    volumes:
+      - ./database:/app/database
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - lepatage-network
+    depends_on:
+      - redis
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: lepatage-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - lepatage-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: lepatage-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./dist:/usr/share/nginx/html:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - lepatage-network
+    depends_on:
+      - app
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: lepatage-certbot
+    volumes:
+      - ./ssl:/etc/letsencrypt
+      - ./dist:/var/www/html
+    command: certonly --webroot --webroot-path=/var/www/html --email your-email@domain.com --agree-tos --no-eff-email -d yourdomain.com -d www.yourdomain.com
+
+volumes:
+  redis_data:
+  nginx_logs:
+
+networks:
+  lepatage-network:
+    driver: bridge
+

@@ -52,14 +52,14 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit (for videos)
   },
   fileFilter: (_req, file, cb) => {
-    // Accept only images
-    if (file.mimetype.startsWith('image/')) {
+    // Accept images and videos
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'));
+      cb(new Error('Only image and video files are allowed!'));
     }
   }
 });
@@ -71,17 +71,22 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const imageUrl = `/assets/${req.file.filename}`;
+    const fileUrl = `/assets/${req.file.filename}`;
     res.json({ 
       success: true, 
-      imageUrl,
+      imageUrl: fileUrl, // Keep for backward compatibility
+      fileUrl: fileUrl,
       filename: req.file.filename,
       originalName: req.file.originalname,
-      size: req.file.size
+      size: req.file.size,
+      mimetype: req.file.mimetype
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload error:', error);
-    res.status(500).json({ error: 'Upload failed' });
+    res.status(500).json({ 
+      error: 'Upload failed',
+      message: error.message || 'Unknown error'
+    });
   }
 });
 
@@ -136,13 +141,13 @@ app.use((_req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
 
-  const interfaces = os.networkInterfaces();
   let localIP = 'localhost';
-  
-  // Найдем локальный IP адрес
-  for (const name of Object.keys(interfaces)) {
-    const ifaceList = interfaces[name];
-    if (ifaceList) {
+  try {
+    const interfaces = os.networkInterfaces();
+    // Найдем локальный IP адрес
+    for (const name of Object.keys(interfaces)) {
+      const ifaceList = interfaces[name];
+      if (!ifaceList) continue;
       for (const iface of ifaceList) {
         if (iface.family === 'IPv4' && !iface.internal) {
           localIP = iface.address;
@@ -150,6 +155,9 @@ app.listen(PORT, '0.0.0.0', () => {
         }
       }
     }
+  } catch (e) {
+    // В некоторых окружениях (песочницы/CI) os.networkInterfaces() может быть запрещен
+    localIP = 'localhost';
   }
   
   console.log(`🚀 Server running on:`);

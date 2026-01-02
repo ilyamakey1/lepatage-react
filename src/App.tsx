@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
+import { httpLink } from '@trpc/client';
 import { trpc } from './utils/trpc';
 import { getApiUrl } from './utils/apiConfig';
 import { Header } from './components/Header';
@@ -15,6 +15,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { AdminPage } from './pages/AdminPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { CustomOrderPage } from './pages/CustomOrderPage';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
@@ -51,7 +52,7 @@ function App() {
   const [trpcClient] = React.useState(() =>
     trpc.createClient({
       links: [
-        httpBatchLink({
+        httpLink({
           url: getApiUrl(),
         }),
       ],
@@ -85,6 +86,7 @@ function App() {
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
+                        <Route path="/custom-order" element={<CustomOrderPage />} />
                         <Route path="/admin" element={<AdminPage />} />
                         <Route path="/admin-login" element={<AdminLoginPage />} />
                         <Route path="*" element={<div className="pt-24 min-h-screen flex items-center justify-center"><h1 className="text-luxury-950 font-sans text-3xl">Page Not Found</h1></div>} />
