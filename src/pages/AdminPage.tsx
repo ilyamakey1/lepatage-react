@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { trpc } from '../utils/trpc';
 import { Package, Users, ShoppingCart, LogOut, Plus, Edit, Trash2, X, Home } from 'lucide-react';
 import { ImageManager } from '../components/ImageManager';
-import { HomepageImageUpload } from '../components/HomepageImageUpload';
+import { HomepageEditor } from '../components/HomepageEditor';
 
 export const AdminPage: React.FC = () => {
   const { state, logout } = useAuth();
@@ -42,29 +42,7 @@ export const AdminPage: React.FC = () => {
   const { data: newsletterSubscriptions } = trpc.newsletter.getAllSubscribers.useQuery();
   const { data: customOrders } = trpc.customOrders.getAll.useQuery({ limit: 100, offset: 0 });
   
-  // Homepage settings
-  const { data: homepageSettings, refetch: refetchHomepageSettings } = trpc.homepage.getSettings.useQuery();
-  const [homepageForm, setHomepageForm] = useState({
-    hero_image: '',
-    grid_top_left: '',
-    grid_top_right: '',
-    grid_bottom_left: '',
-    grid_bottom_right: '',
-    hero_product_id: '',
-  });
   
-  // Get hero product for preview
-  const heroProductSlug = homepageForm.hero_product_id || 'corset-armor';
-  const { data: heroProduct } = trpc.products.getBySlug.useQuery(
-    { slug: heroProductSlug }
-  );
-  
-  const updateHomepageSettingsMutation = trpc.homepage.updateSettings.useMutation({
-    onSuccess: () => {
-      refetchHomepageSettings();
-      alert('Настройки главной страницы обновлены!');
-    },
-  });
 
   const deleteProductMutation = trpc.products.delete.useMutation({
     onSuccess: () => {
@@ -113,25 +91,7 @@ export const AdminPage: React.FC = () => {
     navigate('/');
   };
 
-  // Sync homepage settings with form
-  useEffect(() => {
-    if (homepageSettings) {
-      setHomepageForm({
-        hero_image: homepageSettings.hero_image || '',
-        grid_top_left: homepageSettings.grid_top_left || '',
-        grid_top_right: homepageSettings.grid_top_right || '',
-        grid_bottom_left: homepageSettings.grid_bottom_left || '',
-        grid_bottom_right: homepageSettings.grid_bottom_right || '',
-        hero_product_id: homepageSettings.hero_product_id || '',
-      });
-    }
-  }, [homepageSettings]);
-
-  const handleSaveHomepageSettings = () => {
-    updateHomepageSettingsMutation.mutate({
-      settings: homepageForm,
-    });
-  };
+  
 
   const handleDeleteProduct = (productId: number) => {
     if (window.confirm('Вы уверены, что хотите удалить этот товар?')) {
@@ -683,185 +643,7 @@ export const AdminPage: React.FC = () => {
           {/* Homepage Tab */}
           {activeTab === 'homepage' && (
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-luxury-950 mb-6">Управление главной страницей</h2>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Visual Prototype */}
-                <div className="border border-luxury-200 rounded-lg p-6 bg-luxury-50">
-                  <h3 className="text-lg font-semibold text-luxury-950 mb-4">Прототип главной страницы</h3>
-                  
-                  <div className="space-y-4">
-                    {/* Hero Section Preview */}
-                    <div className="border border-luxury-300 rounded-lg overflow-hidden bg-white">
-                      <div className="relative h-32 bg-luxury-100">
-                        {homepageForm.hero_image ? (
-                          <img 
-                            src={homepageForm.hero_image} 
-                            alt="Hero" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs">
-                            Hero изображение
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* 2x2 Grid Preview */}
-                    <div className="border border-luxury-300 rounded-lg overflow-hidden bg-white">
-                      <div className="grid grid-cols-2 h-64">
-                        {/* Top Left */}
-                        <div className="relative bg-luxury-100 border-r border-b border-luxury-300">
-                          {homepageForm.grid_top_left ? (
-                            homepageForm.grid_top_left.endsWith('.MOV') || homepageForm.grid_top_left.endsWith('.mov') || homepageForm.grid_top_left.endsWith('.mp4') ? (
-                              <video src={homepageForm.grid_top_left} className="w-full h-full object-cover" muted loop />
-                            ) : (
-                              <img src={homepageForm.grid_top_left} alt="Top Left" className="w-full h-full object-cover" />
-                            )
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
-                              Верхняя<br/>левая
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Top Right */}
-                        <div className="relative bg-luxury-100 border-b border-luxury-300">
-                          {homepageForm.grid_top_right ? (
-                            <img src={homepageForm.grid_top_right} alt="Top Right" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
-                              Верхняя<br/>правая
-                            </div>
-                          )}
-                          {/* Product Plaque Preview on Top Right */}
-                          {heroProduct && homepageForm.hero_product_id && (
-                            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-lg p-1 text-xs">
-                              <div className="flex items-center space-x-1">
-                                <div className="w-6 h-6 bg-luxury-200 rounded flex-shrink-0"></div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold truncate text-xs">{heroProduct.name}</div>
-                                  <div className="text-luxury-600 text-xs">{heroProduct.price} ₽</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Bottom Left */}
-                        <div className="relative bg-luxury-100 border-r border-luxury-300">
-                          {homepageForm.grid_bottom_left ? (
-                            <img src={homepageForm.grid_bottom_left} alt="Bottom Left" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
-                              Нижняя<br/>левая
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Bottom Right */}
-                        <div className="relative bg-luxury-100">
-                          {homepageForm.grid_bottom_right ? (
-                            <img src={homepageForm.grid_bottom_right} alt="Bottom Right" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-luxury-400 text-xs text-center px-2">
-                              Нижняя<br/>правая
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Settings Form */}
-                <div className="space-y-6">
-                  {/* Hero Section */}
-                  <div className="border border-luxury-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-luxury-950 mb-4">Hero секция</h3>
-                    
-                    <div className="space-y-4">
-                      <HomepageImageUpload
-                        imageUrl={homepageForm.hero_image}
-                        onImageChange={(url) => setHomepageForm({...homepageForm, hero_image: url})}
-                        onRemove={() => setHomepageForm({...homepageForm, hero_image: ''})}
-                        label="Hero изображение"
-                        placeholder="/assets/hero-woman-corset.jpg"
-                      />
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-luxury-950 mb-2">
-                          Продукт для плашки
-                        </label>
-                        <select
-                          value={homepageForm.hero_product_id}
-                          onChange={(e) => setHomepageForm({...homepageForm, hero_product_id: e.target.value})}
-                          className="w-full px-3 py-2 border border-luxury-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-950"
-                        >
-                          <option value="">Выберите продукт</option>
-                          {products?.map((product) => (
-                            <option key={product.id} value={product.slug}>
-                              {product.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2x2 Grid Section */}
-                  <div className="border border-luxury-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-luxury-950 mb-4">2x2 Сетка фотографий</h3>
-                    
-                    <div className="space-y-4">
-                      <HomepageImageUpload
-                        imageUrl={homepageForm.grid_top_left}
-                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_top_left: url})}
-                        onRemove={() => setHomepageForm({...homepageForm, grid_top_left: ''})}
-                        label="Верхняя левая (видео/фото)"
-                        placeholder="/assets/IMG_8424.MOV"
-                        isVideo={true}
-                      />
-                      
-                      <HomepageImageUpload
-                        imageUrl={homepageForm.grid_top_right}
-                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_top_right: url})}
-                        onRemove={() => setHomepageForm({...homepageForm, grid_top_right: ''})}
-                        label="Верхняя правая"
-                        placeholder="/assets/IMG_2083.JPG"
-                      />
-                      
-                      <HomepageImageUpload
-                        imageUrl={homepageForm.grid_bottom_left}
-                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_bottom_left: url})}
-                        onRemove={() => setHomepageForm({...homepageForm, grid_bottom_left: ''})}
-                        label="Нижняя левая"
-                        placeholder="/assets/L'Epatage DSC07578.JPG"
-                      />
-                      
-                      <HomepageImageUpload
-                        imageUrl={homepageForm.grid_bottom_right}
-                        onImageChange={(url) => setHomepageForm({...homepageForm, grid_bottom_right: url})}
-                        onRemove={() => setHomepageForm({...homepageForm, grid_bottom_right: ''})}
-                        label="Нижняя правая"
-                        placeholder="/assets/IMG_6013.JPG"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Save Button */}
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleSaveHomepageSettings}
-                      disabled={updateHomepageSettingsMutation.isPending}
-                      className="px-6 py-3 bg-primary-950 text-white hover:bg-primary-900 transition-colors duration-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {updateHomepageSettingsMutation.isPending ? 'Сохранение...' : 'Сохранить изменения'}
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <HomepageEditor />
             </div>
           )}
         </div>

@@ -31,26 +31,74 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     try {
       const savedFavorites = localStorage.getItem('lepatage-favorites');
       if (savedFavorites) {
-        setFavorites(JSON.parse(savedFavorites));
+        const parsed = JSON.parse(savedFavorites);
+        // Убеждаемся, что это массив
+        if (Array.isArray(parsed)) {
+          setFavorites(parsed);
+        }
       }
     } catch (error) {
       console.error('Error loading favorites from localStorage:', error);
+      // В случае ошибки очищаем поврежденные данные
+      try {
+        localStorage.removeItem('lepatage-favorites');
+      } catch (e) {
+        // Игнорируем ошибки при удалении
+      }
     }
   }, []);
 
   // Сохраняем избранное в localStorage при изменении
   useEffect(() => {
     try {
-      localStorage.setItem('lepatage-favorites', JSON.stringify(favorites));
+      if (favorites.length > 0) {
+        localStorage.setItem('lepatage-favorites', JSON.stringify(favorites));
+      } else {
+        // Если избранное пустое, удаляем из localStorage
+        localStorage.removeItem('lepatage-favorites');
+      }
     } catch (error) {
       console.error('Error saving favorites to localStorage:', error);
+      // Если localStorage переполнен, пытаемся очистить старые данные
+      if (error instanceof DOMException && error.code === 22) {
+        console.warn('LocalStorage is full, trying to clear old data');
+        try {
+          // Оставляем только последние 50 товаров
+          const limited = favorites.slice(-50);
+          localStorage.setItem('lepatage-favorites', JSON.stringify(limited));
+          setFavorites(limited);
+        } catch (e) {
+          console.error('Failed to save limited favorites:', e);
+        }
+      }
     }
   }, [favorites]);
 
   const addToFavorites = (product: Product) => {
     setFavorites(prev => {
+      // Проверяем, нет ли уже этого товара в избранном
       if (!prev.find(p => p.id === product.id)) {
-        return [...prev, product];
+        // Убеждаемся, что сохраняем полный объект товара
+        const productToAdd: Product = {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          description: product.description,
+          shortDescription: product.shortDescription,
+          price: product.price,
+          salePrice: product.salePrice,
+          images: product.images || [],
+          colors: product.colors || [],
+          sizes: product.sizes || [],
+          inStock: product.inStock ?? true,
+          featured: product.featured ?? false,
+          isNew: product.isNew ?? false,
+          onSale: product.onSale ?? false,
+          tags: product.tags || [],
+          createdAt: product.createdAt || new Date().toISOString(),
+          category: product.category,
+        };
+        return [...prev, productToAdd];
       }
       return prev;
     });

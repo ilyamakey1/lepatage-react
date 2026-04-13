@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X } from 'lucide-react';
+import { authHeaders } from '../utils/authHeaders';
 
 interface HomepageImageUploadProps {
   imageUrl: string;
@@ -40,6 +41,7 @@ export const HomepageImageUpload: React.FC<HomepageImageUploadProps> = ({
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        headers: authHeaders(),
       });
 
       if (response.ok) {

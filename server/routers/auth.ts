@@ -1,12 +1,11 @@
 import { z } from 'zod';
-import { router, publicProcedure } from '../trpc.js';
+import { router, publicProcedure, adminProcedure } from '../trpc.js';
 import { db } from '../../database/db.js';
 import { users } from '../../database/schema.js';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import { getJwtSecret } from '../lib/auth.js';
 
 export const authRouter = router({
   // Register new user
@@ -50,7 +49,7 @@ export const authRouter = router({
             email: newUser[0].email,
             isAdmin: newUser[0].isAdmin 
           },
-          JWT_SECRET,
+          getJwtSecret(),
           { expiresIn: '7d' }
         );
 
@@ -104,7 +103,7 @@ export const authRouter = router({
             email: user[0].email,
             isAdmin: user[0].isAdmin 
           },
-          JWT_SECRET,
+          getJwtSecret(),
           { expiresIn: '7d' }
         );
 
@@ -127,7 +126,7 @@ export const authRouter = router({
     }),
 
   // Get all users (for admin)
-  getAllUsers: publicProcedure
+  getAllUsers: adminProcedure
     .query(async () => {
       try {
         const allUsers = await db.select({
@@ -154,7 +153,7 @@ export const authRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const decoded = jwt.verify(input.token, JWT_SECRET) as any;
+        const decoded = jwt.verify(input.token, getJwtSecret()) as any;
         
         // Get fresh user data
         const user = await db.select({

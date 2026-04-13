@@ -3,10 +3,9 @@ module.exports = {
     {
       name: 'lepatage-api',
       script: './server/index.ts',
-      interpreter: 'node',
-      interpreter_args: '--loader tsx/esm',
+      interpreter: 'tsx',
       instances: 1,
-      exec_mode: 'cluster',
+      exec_mode: 'fork',
       watch: false,
       max_memory_restart: '1G',
       env: {

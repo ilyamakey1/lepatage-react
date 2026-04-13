@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, GripVertical } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { authHeaders } from '../utils/authHeaders';
 
 interface ImageManagerProps {
   images: string[];
@@ -39,6 +40,7 @@ export const ImageManager: React.FC<ImageManagerProps> = ({
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        headers: authHeaders(),
       });
 
       if (response.ok) {

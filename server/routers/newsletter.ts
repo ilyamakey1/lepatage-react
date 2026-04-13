@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, publicProcedure } from '../trpc.js';
+import { router, publicProcedure, adminProcedure } from '../trpc.js';
 import { db } from '../../database/db.js';
 import { newsletterSubscriptions } from '../../database/schema.js';
 import { eq, desc } from 'drizzle-orm';
@@ -63,7 +63,7 @@ export const newsletterRouter = router({
     }),
 
   // Get all subscribers (for admin)
-  getAllSubscribers: publicProcedure
+  getAllSubscribers: adminProcedure
     .query(async () => {
       try {
         const subscribers = await db.select()

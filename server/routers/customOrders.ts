@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { publicProcedure, router } from '../trpc';
-import { db } from '../../database/db';
-import { customOrders } from '../../database/schema';
+import { publicProcedure, adminProcedure, router } from '../trpc.js';
+import { db } from '../../database/db.js';
+import { customOrders } from '../../database/schema.js';
 import { eq, desc } from 'drizzle-orm';
 
 // Generate unique order number
@@ -75,7 +75,7 @@ export const customOrdersRouter = router({
     }),
 
   // Get all custom orders (admin only)
-  getAll: publicProcedure
+  getAll: adminProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(50),
       offset: z.number().min(0).default(0),
@@ -101,7 +101,7 @@ export const customOrdersRouter = router({
     }),
 
   // Get single custom order by ID (admin only)
-  getById: publicProcedure
+  getById: adminProcedure
     .input(z.object({
       id: z.number(),
     }))
@@ -122,7 +122,7 @@ export const customOrdersRouter = router({
     }),
 
   // Update custom order status and notes (admin only)
-  update: publicProcedure
+  update: adminProcedure
     .input(z.object({
       id: z.number(),
       status: z.enum(['new', 'in_progress', 'completed', 'cancelled']).optional(),
@@ -152,7 +152,7 @@ export const customOrdersRouter = router({
     }),
 
   // Delete custom order (admin only)
-  delete: publicProcedure
+  delete: adminProcedure
     .input(z.object({
       id: z.number(),
     }))
@@ -170,7 +170,7 @@ export const customOrdersRouter = router({
     }),
 
   // Get order counts by status (admin only)
-  getStats: publicProcedure
+  getStats: adminProcedure
     .query(async () => {
       const allOrders = await db.select().from(customOrders);
       

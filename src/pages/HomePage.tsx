@@ -46,8 +46,25 @@ export const HomePage: React.FC = () => {
   const gridBottomLeft = homepageSettings?.grid_bottom_left || '/assets/L\'Epatage DSC07578.JPG';
   const gridBottomRight = homepageSettings?.grid_bottom_right || '/assets/IMG_6013.JPG';
   
-  // Determine if top left is video or image
-  const isVideo = gridTopLeft.endsWith('.MOV') || gridTopLeft.endsWith('.mov') || gridTopLeft.endsWith('.mp4');
+  const isVideo = (url: string) => /\.(mov|mp4|webm)$/i.test(url);
+
+  const bottomPhoto = homepageSettings?.bottom_photo || '/assets/corset-avegue.jpg';
+  const heroplaqueImage = homepageSettings?.hero_plaque_image || '';
+  const bottomPlaqueImage = homepageSettings?.bottom_plaque_image || '';
+  const bottomVideo = homepageSettings?.bottom_video || '/assets/IMG_8424.MOV';
+
+  const VIDEO_MAX_DURATION = 8;
+  const handleVideoTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.currentTime >= VIDEO_MAX_DURATION) {
+      video.currentTime = 0;
+    }
+  };
+
+  const bottomProductSlug = homepageSettings?.bottom_product_id || 'corset-armor';
+  const { data: bottomProduct } = trpc.products.getBySlug.useQuery(
+    { slug: bottomProductSlug }
+  );
 
   return (
     <div className="min-h-screen text-luxury-950 overflow-x-hidden">
@@ -61,26 +78,31 @@ export const HomePage: React.FC = () => {
               isHeroLoaded ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
             }`}
             onLoad={() => setIsHeroLoaded(true)}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           {/* Gradient overlays for mobile readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 md:bg-gradient-to-r md:from-black/20 md:via-transparent md:to-transparent" />
         </div>
       </section>
 
-      {/* 2x2 Grid Layout */}
-      <section className="mb-8 md:mb-16 lg:mb-24">
+      {/* Grid Layout */}
+      <section className="content-auto">
         <div className="grid grid-cols-2">
           {/* Top Left - Video or Image */}
           <div className="relative">
             <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden">
-              {isVideo ? (
+              {isVideo(gridTopLeft) ? (
                 <video 
                   src={gridTopLeft} 
                   autoPlay 
                   muted 
                   loop 
                   playsInline
-                  className="w-full h-full object-cover object-center"
+                  preload="metadata"
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  className="w-full h-full object-cover object-center pointer-events-none"
                 />
               ) : (
                 <img
@@ -102,7 +124,6 @@ export const HomePage: React.FC = () => {
                 className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
                 loading="lazy"
               />
-              {/* View Product Plaque - Responsive */}
               {heroProduct && (
                 <Link 
                   to={`/products/${heroProduct?.slug || ''}`}
@@ -111,7 +132,7 @@ export const HomePage: React.FC = () => {
                   <div className="px-3 py-3 md:px-4 md:py-4 flex items-center gap-3">
                     <div className="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 overflow-hidden rounded-lg">
                       <img
-                        src={heroProduct.images?.[0] || '/assets/corset-avegue.jpg'}
+                        src={heroplaqueImage || heroProduct.images?.[0] || '/assets/corset-avegue.jpg'}
                         alt={heroProduct.name}
                         className="w-full h-full object-cover"
                       />
@@ -161,12 +182,86 @@ export const HomePage: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Row 3 Left - Photo with Product Plaque */}
+          <div className="relative">
+            <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden relative">
+              <img
+                src={bottomPhoto}
+                alt="L'Épatage Corset"
+                className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                loading="lazy"
+              />
+              {(bottomProduct || heroProduct) && (() => {
+                const plaqueProduct = bottomProduct || heroProduct;
+                if (!plaqueProduct) return null;
+                return (
+                  <Link
+                    to={`/products/${plaqueProduct.slug || ''}`}
+                    className="absolute inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm shadow-lg active:bg-white transition-colors"
+                  >
+                    <div className="px-3 py-3 md:px-4 md:py-4 flex items-center gap-3">
+                      <div className="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 overflow-hidden rounded-lg">
+                        <img
+                          src={bottomPlaqueImage || plaqueProduct.images?.[0] || '/assets/corset-avegue.jpg'}
+                          alt={plaqueProduct.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-luxury-950 font-semibold text-sm md:text-base leading-tight line-clamp-1">
+                          {plaqueProduct.name}
+                        </h3>
+                        <p className="text-luxury-700 font-medium text-sm mt-0.5">
+                          {plaqueProduct.salePrice ? (
+                            <>
+                              <span className="line-through text-luxury-400 mr-1">{plaqueProduct.price} ₽</span>
+                              <span>{plaqueProduct.salePrice} ₽</span>
+                            </>
+                          ) : (
+                            `${plaqueProduct.price} ₽`
+                          )}
+                        </p>
+                      </div>
+                      <ChevronRight size={20} className="text-luxury-400 flex-shrink-0" />
+                    </div>
+                  </Link>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Row 3 Right - Video */}
+          <div className="relative">
+            <div className="w-full aspect-[3/4] md:aspect-[3/4] overflow-hidden">
+              {isVideo(bottomVideo) ? (
+                <video
+                  src={bottomVideo}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  className="w-full h-full object-cover object-center pointer-events-none"
+                />
+              ) : (
+                <img
+                  src={bottomVideo}
+                  alt="L'Épatage Video"
+                  className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Featured Products Section */}
       {featuredProducts && featuredProducts.length > 0 && (
-        <section className="relative pb-12 md:pb-20">
+        <section className="relative pb-12 md:pb-20 content-auto">
           {/* Section Header */}
           <div className="px-4 md:px-8 mb-6 md:mb-10">
             <h2 className="text-xl md:text-2xl lg:text-3xl font-semibold text-luxury-950 tracking-tight">

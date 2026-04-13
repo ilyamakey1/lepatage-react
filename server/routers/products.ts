@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, publicProcedure } from '../trpc.js';
+import { router, publicProcedure, adminProcedure } from '../trpc.js';
 import { db } from '../../database/db.js';
 import { products, categories } from '../../database/schema.js';
 import { eq, like, and, or, desc, asc, inArray } from 'drizzle-orm';
@@ -294,7 +294,7 @@ export const productsRouter = router({
     }),
 
   // Update product (admin only)
-  update: publicProcedure
+  update: adminProcedure
     .input(z.object({
       id: z.number(),
       name: z.string().min(1).optional(),
@@ -339,7 +339,7 @@ export const productsRouter = router({
     }),
 
   // Delete product (admin only)
-  delete: publicProcedure
+  delete: adminProcedure
     .input(z.object({
       id: z.number(),
     }))
@@ -349,7 +349,7 @@ export const productsRouter = router({
     }),
 
   // Create new product (admin only)
-  create: publicProcedure
+  create: adminProcedure
     .input(z.object({
       name: z.string().min(1),
       slug: z.string().min(1),

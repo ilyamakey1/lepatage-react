@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (dev needed for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -19,8 +19,8 @@ RUN npm run build
 # Production stage
 FROM node:18-alpine AS production
 
-# Install PM2 globally
-RUN npm install -g pm2
+# Install PM2 and tsx globally
+RUN npm install -g pm2 tsx
 
 # Create app directory
 WORKDIR /app
@@ -29,18 +29,24 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S lepatage -u 1001
 
+# Copy package files and install production dependencies only
+COPY package*.json ./
+RUN npm ci --omit=dev
+
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/database ./database
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/public ./public
 
-# Copy PM2 ecosystem file
+# Copy PM2 ecosystem and entrypoint (миграции перед стартом)
 COPY ecosystem.config.js ./
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 # Create necessary directories and set permissions
-RUN mkdir -p /app/uploads /app/logs
+RUN mkdir -p /app/public/assets /app/logs /app/database /data
 RUN chown -R lepatage:nodejs /app
 
 # Switch to non-root user
@@ -50,9 +56,8 @@ USER lepatage
 EXPOSE 3001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Start the application with PM2
-CMD ["pm2-runtime", "start", "ecosystem.config.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
 

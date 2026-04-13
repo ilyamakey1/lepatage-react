@@ -1,7 +1,6 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   html {
@@ -97,6 +96,15 @@
   .card-touch {
     @apply transition-all duration-300;
     @apply active:scale-[0.98] active:opacity-90;
+  }
+
+  /* GPU-accelerated animations for smoother mobile scrolling */
+  .gpu-accelerated {
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 }
 
@@ -346,5 +354,11 @@
 
   .gradient-to-b-dark {
     background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%);
+  }
+
+  /* Skip rendering of off-screen sections for faster initial paint */
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
   }
 }

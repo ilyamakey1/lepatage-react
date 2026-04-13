@@ -3,6 +3,8 @@ import cors from 'cors';
 import multer from 'multer';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './router.js';
+import { createContext } from './trpc.js';
+import { getUserFromAuthHeader } from './lib/auth.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
@@ -13,89 +15,116 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
+const isProd = process.env.NODE_ENV === 'production';
 
-// CORS configuration
-app.use(cors({
-  origin: true, // Разрешить любые origin для deve
-  // lopmen
-  credentials: true,
-}));
+/** В production обязателен список origin через запятую (например https://site.fly.dev). */
+function getCorsConfig(): cors.CorsOptions {
+  if (!isProd) {
+    return { origin: true, credentials: true };
+  }
+  const raw = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) ?? [];
+  if (raw.length === 0) {
+    console.error(
+      '[FATAL] В production задайте CORS_ORIGINS (через запятую), например: https://your-app.fly.dev'
+    );
+    process.exit(1);
+  }
+  return {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (raw.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin not allowed: ${origin}`));
+    },
+    credentials: true,
+  };
+}
 
-// Parse JSON bodies
+app.use(cors(getCorsConfig()));
+
 app.use(express.json());
 
-// Static files
 app.use('/assets', express.static(path.join(__dirname, '../public/assets')));
-
-// Serve static files from dist folder (production build)
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../public/assets');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (_req, file, cb) => {
-    // Generate unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
     cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
+  },
 });
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit (for videos)
+    fileSize: 50 * 1024 * 1024,
   },
   fileFilter: (_req, file, cb) => {
-    // Accept images and videos
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
       cb(null, true);
     } else {
       cb(new Error('Only image and video files are allowed!'));
     }
-  }
+  },
 });
 
-// Upload endpoint
-app.post('/api/upload', upload.single('image'), (req, res) => {
+async function requireAdmin(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const user = await getUserFromAuthHeader(req.headers.authorization);
+  if (!user?.isAdmin) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Требуется вход администратора',
+    });
+  }
+  next();
+}
+
+app.post('/api/upload', requireAdmin, upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const fileUrl = `/assets/${req.file.filename}`;
-    res.json({ 
-      success: true, 
-      imageUrl: fileUrl, // Keep for backward compatibility
+    res.json({
+      success: true,
+      imageUrl: fileUrl,
       fileUrl: fileUrl,
       filename: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size,
-      mimetype: req.file.mimetype
+      mimetype: req.file.mimetype,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Upload error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Upload failed',
-      message: error.message || 'Unknown error'
+      message,
     });
   }
 });
 
-// Delete image endpoint
-app.delete('/api/images/:filename', (req, res) => {
+app.delete('/api/images/:filename', requireAdmin, (req, res) => {
   try {
-    const filename = req.params.filename;
-    const filePath = path.join(uploadsDir, filename);
-    
+    const safe = path.basename(req.params.filename);
+    if (safe !== req.params.filename || safe.includes('..')) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+    const filePath = path.join(uploadsDir, safe);
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       res.json({ success: true, message: 'Image deleted successfully' });
@@ -108,43 +137,39 @@ app.delete('/api/images/:filename', (req, res) => {
   }
 });
 
-// tRPC middleware
-app.use('/api', createExpressMiddleware({
-  router: appRouter,
-  createContext: () => ({}),
-}));
+app.use(
+  '/api',
+  createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  })
+);
 
-// Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve index.html for root route
 app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-// Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Server error:', err);
-  res.status(500).json({ 
+  const message = err instanceof Error ? err.message : 'Something went wrong';
+  res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development' ? message : 'Something went wrong',
   });
 });
 
-// 404 handler
 app.use((_req, res) => {
-  // For SPA, serve index.html for all routes
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-
   let localIP = 'localhost';
   try {
     const interfaces = os.networkInterfaces();
-    // Найдем локальный IP адрес
     for (const name of Object.keys(interfaces)) {
       const ifaceList = interfaces[name];
       if (!ifaceList) continue;
@@ -155,11 +180,10 @@ app.listen(PORT, '0.0.0.0', () => {
         }
       }
     }
-  } catch (e) {
-    // В некоторых окружениях (песочницы/CI) os.networkInterfaces() может быть запрещен
+  } catch {
     localIP = 'localhost';
   }
-  
+
   console.log(`🚀 Server running on:`);
   console.log(`   ➜ Local:   http://localhost:${PORT}`);
   console.log(`   ➜ Network: http://${localIP}:${PORT}`);

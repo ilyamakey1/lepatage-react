@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { publicProcedure, router } from '../trpc.js';
+import { publicProcedure, adminProcedure, router } from '../trpc.js';
 import { db } from '../../database/db.js';
 import { orders, orderItems, products } from '../../database/schema.js';
 import { eq, desc } from 'drizzle-orm';
@@ -155,7 +155,7 @@ export const ordersRouter = router({
     }),
 
   // Get all orders (for admin)
-  getAll: publicProcedure
+  getAll: adminProcedure
     .input(z.object({
       limit: z.number().min(1).max(100).default(20),
       offset: z.number().min(0).default(0),
@@ -186,7 +186,7 @@ export const ordersRouter = router({
     }),
 
   // Update order status
-  updateStatus: publicProcedure
+  updateStatus: adminProcedure
     .input(z.object({
       orderId: z.number(),
       status: z.enum(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']),

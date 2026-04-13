@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, publicProcedure } from '../trpc.js';
+import { router, publicProcedure, adminProcedure } from '../trpc.js';
 import { db } from '../../database/db.js';
 import { homepageSettings } from '../../database/schema.js';
 import { eq } from 'drizzle-orm';
@@ -24,7 +24,7 @@ export const homepageRouter = router({
   }),
 
   // Update homepage setting
-  updateSetting: publicProcedure
+  updateSetting: adminProcedure
     .input(z.object({
       key: z.string(),
       value: z.string().nullable(),
@@ -61,7 +61,7 @@ export const homepageRouter = router({
     }),
 
   // Update multiple settings at once
-  updateSettings: publicProcedure
+  updateSettings: adminProcedure
     .input(z.object({
       settings: z.record(z.string(), z.string().nullable()),
     }))

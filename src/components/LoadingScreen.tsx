@@ -42,10 +42,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     >
       <div className="logo-container">
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
-          
           .logo-container {
-            font-family: 'Playfair Display', serif;
+            font-family: Georgia, 'Times New Roman', serif;
             font-size: 60px;
             color: white;
             letter-spacing: 5px;
@@ -55,19 +53,19 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
           .logo-letter {
             opacity: 0;
             display: inline-block;
-            transform: translateY(20px);
-            animation: showLetter 0.3s forwards;
+            transform: translateY(15px);
+            animation: showLetter 0.2s forwards;
           }
           
           .logo-letter:nth-child(1) { animation-delay: 0s; }
-          .logo-letter:nth-child(2) { animation-delay: 0.15s; }
-          .logo-letter:nth-child(3) { animation-delay: 0.3s; }
-          .logo-letter:nth-child(4) { animation-delay: 0.45s; }
-          .logo-letter:nth-child(5) { animation-delay: 0.6s; }
-          .logo-letter:nth-child(6) { animation-delay: 0.75s; }
-          .logo-letter:nth-child(7) { animation-delay: 0.9s; }
-          .logo-letter:nth-child(8) { animation-delay: 1.05s; }
-          .logo-letter:nth-child(9) { animation-delay: 1.2s; }
+          .logo-letter:nth-child(2) { animation-delay: 0.04s; }
+          .logo-letter:nth-child(3) { animation-delay: 0.08s; }
+          .logo-letter:nth-child(4) { animation-delay: 0.12s; }
+          .logo-letter:nth-child(5) { animation-delay: 0.16s; }
+          .logo-letter:nth-child(6) { animation-delay: 0.20s; }
+          .logo-letter:nth-child(7) { animation-delay: 0.24s; }
+          .logo-letter:nth-child(8) { animation-delay: 0.28s; }
+          .logo-letter:nth-child(9) { animation-delay: 0.32s; }
           
           @keyframes showLetter {
             to {

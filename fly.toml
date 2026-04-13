@@ -1,0 +1,31 @@
+# Fly.io — https://fly.io/docs/reference/configuration/
+app = "lepatage-replace-me"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3001"
+  # SQLite на постоянном томе (см. [mounts])
+  DATABASE_URL = "file:/data/lepatage.db"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  # Для витрины без «холодного старта» поставьте 1 (выше стоимость)
+  min_machines_running = 1
+  processes = ["app"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Постоянное хранилище для SQLite (обязательно для заказов и каталога)
+[[mounts]]
+  source = "lepatage_data"
+  destination = "/data"

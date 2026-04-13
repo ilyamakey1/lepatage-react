@@ -1,25 +1,35 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
 import { trpc } from './utils/trpc';
 import { getApiUrl } from './utils/apiConfig';
+import { authHeaders } from './utils/authHeaders';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { LoadingScreen } from './components/LoadingScreen';
-import { HomePage } from './pages/HomePage';
-import { CatalogPage } from './pages/CatalogPage';
-import { ProductPage } from './pages/ProductPage';
-import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { OrderSuccessPage } from './pages/OrderSuccessPage';
-import { AdminPage } from './pages/AdminPage';
-import { AdminLoginPage } from './pages/AdminLoginPage';
-import { CustomOrderPage } from './pages/CustomOrderPage';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
 import './index.css';
+
+// Lazy load pages — each page loads only when navigated to
+const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
+const CatalogPage = lazy(() => import('./pages/CatalogPage').then(m => ({ default: m.CatalogPage })));
+const ProductPage = lazy(() => import('./pages/ProductPage').then(m => ({ default: m.ProductPage })));
+const CartPage = lazy(() => import('./pages/CartPage').then(m => ({ default: m.CartPage })));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
+const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage').then(m => ({ default: m.OrderSuccessPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })));
+const CustomOrderPage = lazy(() => import('./pages/CustomOrderPage').then(m => ({ default: m.CustomOrderPage })));
+
+// Minimal loading fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-luxury-200 border-t-luxury-950 rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   // Показываем лоадер только если это первое посещение за сессию
@@ -43,8 +53,10 @@ function App() {
   const [queryClient] = React.useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
+        staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        retry: 1,
       },
     },
   }));
@@ -54,6 +66,7 @@ function App() {
       links: [
         httpLink({
           url: getApiUrl(),
+          headers: () => authHeaders(),
         }),
       ],
     })
@@ -64,7 +77,7 @@ function App() {
       {isLoading && (
         <LoadingScreen 
           onComplete={handleLoadingComplete}
-          duration={2000}
+          duration={800}
         />
       )}
       
@@ -78,19 +91,21 @@ function App() {
                     {!isLoading && <Header />}
                     
                     <main>
-                      <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/catalog" element={<CatalogPage />} />
-                        <Route path="/catalog/:categorySlug" element={<CatalogPage />} />
-                        <Route path="/products/:slug" element={<ProductPage />} />
-                        <Route path="/cart" element={<CartPage />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
-                        <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
-                        <Route path="/custom-order" element={<CustomOrderPage />} />
-                        <Route path="/admin" element={<AdminPage />} />
-                        <Route path="/admin-login" element={<AdminLoginPage />} />
-                        <Route path="*" element={<div className="pt-24 min-h-screen flex items-center justify-center"><h1 className="text-luxury-950 font-sans text-3xl">Page Not Found</h1></div>} />
-                      </Routes>
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          <Route path="/" element={<HomePage />} />
+                          <Route path="/catalog" element={<CatalogPage />} />
+                          <Route path="/catalog/:categorySlug" element={<CatalogPage />} />
+                          <Route path="/products/:slug" element={<ProductPage />} />
+                          <Route path="/cart" element={<CartPage />} />
+                          <Route path="/checkout" element={<CheckoutPage />} />
+                          <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
+                          <Route path="/custom-order" element={<CustomOrderPage />} />
+                          <Route path="/admin" element={<AdminPage />} />
+                          <Route path="/admin-login" element={<AdminLoginPage />} />
+                          <Route path="*" element={<div className="pt-24 min-h-screen flex items-center justify-center"><h1 className="text-luxury-950 font-sans text-3xl">Page Not Found</h1></div>} />
+                        </Routes>
+                      </Suspense>
                     </main>
                     
                     {!isLoading && <Footer />}
