@@ -1,0 +1,29 @@
+{
+  "name": "lepatage-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "L'EPATAGE: черновики ответов клиентам Instagram через Hermes Agent с одобрением в Telegram",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "mcp": "tsx src/mcp-server.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.0",
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "express": "^4.21.2",
+    "tsx": "^4.19.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.0"
+  }
+}
