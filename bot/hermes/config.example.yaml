@@ -1,0 +1,34 @@
+# Фрагмент ~/.hermes/config.yaml пользователя, под которым работает Hermes на VPS.
+# Слить с существующим конфигом (не заменять целиком): модель/провайдер настраиваются через `hermes setup`.
+
+mcp_servers:
+  lepatage:
+    # npx ищет tsx от cwd Hermes; если он полезет в интернет — указать напрямую:
+    # command: /var/www/lepatage/bot/node_modules/.bin/tsx, args: [/var/www/lepatage/bot/src/mcp-server.ts]
+    command: npx
+    args: [tsx, /var/www/lepatage/bot/src/mcp-server.ts]
+    env:
+      # База сайта открывается только на чтение (PRAGMA query_only).
+      CATALOG_DB_URL: file:/var/www/lepatage/database/lepatage.db
+    tools:
+      # Агент увидит их как mcp_lepatage_<tool>.
+      include: [list_catalog, search_products, check_availability, quote]
+
+agent:
+  # Боту клиентского чата не нужны терминал, файлы, браузер и выполнение кода — только инструменты каталога.
+  # ВАЖНО: точные имена тулсетов зависят от версии Hermes — сверить командой `hermes tools`
+  # и убрать/добавить имена, чтобы включёнными остались только MCP-инструменты lepatage.
+  disabled_toolsets:
+    - terminal
+    - file
+    - browser
+    - web
+    - code_execution
+    - memory
+    - image_gen
+    - vision
+    - tts
+    - delegation
+    - cronjob
+    - skills
+    - messaging
